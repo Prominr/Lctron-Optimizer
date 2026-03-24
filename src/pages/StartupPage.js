@@ -150,39 +150,45 @@ export default function StartupPage({ addToast }) {
           const total = items.length;
           const disabledPct = total > 0 ? Math.round((disabled / total) * 100) : 0;
           const ringColor = disabledPct === 0 ? '#444' : disabledPct < 33 ? '#f59e0b' : disabledPct < 66 ? '#22c55e' : '#06b6d4';
+          const ringLabel = disabledPct === 0 ? 'Not Optimized' : disabledPct < 33 ? 'Light' : disabledPct < 66 ? 'Good' : 'Optimized';
+          const estBootSaved = Math.round((highImpact * 2.5 + medImpact * 1.2) * 10) / 10;
           const impactBars = [
-            { label: 'High Impact', count: highImpact, color: '#e03030', max: Math.max(highImpact, medImpact, 1) },
-            { label: 'Med Impact', count: medImpact, color: '#f59e0b', max: Math.max(highImpact, medImpact, 1) },
-            { label: 'Disabled', count: disabled, color: '#22c55e', max: Math.max(total, 1) },
+            { label: 'High Impact', count: highImpact, color: '#e03030', max: Math.max(total, 1), note: '~2.5s each' },
+            { label: 'Med Impact',  count: medImpact,  color: '#f59e0b', max: Math.max(total, 1), note: '~1.2s each' },
+            { label: 'Enabled',     count: enabled,    color: '#888',    max: Math.max(total, 1), note: 'still on' },
+            { label: 'Disabled',    count: disabled,   color: '#22c55e', max: Math.max(total, 1), note: 'saved' },
           ];
           const safeItems = [
-            { name: 'Discord', sub: 'Opens on demand', color: '#a78bfa' },
-            { name: 'OneDrive', sub: 'Syncs when needed', color: '#3b82f6' },
-            { name: 'Teams', sub: 'Launch manually', color: '#06b6d4' },
-            { name: 'Spotify', sub: 'Start when ready', color: '#22c55e' },
-            { name: 'Antivirus', sub: 'Keep this enabled!', color: '#f59e0b' },
+            { name: 'Discord',   sub: 'Opens on demand when needed',  color: '#a78bfa', safe: true },
+            { name: 'OneDrive',  sub: 'Syncs when you need it',       color: '#3b82f6', safe: true },
+            { name: 'Teams',     sub: 'Launch manually when needed',  color: '#06b6d4', safe: true },
+            { name: 'Spotify',   sub: 'Start it when you want it',    color: '#22c55e', safe: true },
+            { name: 'Steam',     sub: 'Open before gaming',           color: '#888',    safe: true },
+            { name: 'Antivirus', sub: 'Keep ENABLED — security risk', color: '#f59e0b', safe: false },
           ];
           return (<>
-            {/* Boot impact ring */}
+
+            {/* ── Boot Optimization Ring ── */}
             <motion.div className="psb-card psb-accent-green"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 }}>
               <div className="psb-title"><Zap size={11} /> Boot Optimization</div>
               <div className="psb-ring-wrap">
                 <div className="psb-ring">
                   <svg width="52" height="52" viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
                     <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
                       strokeLinecap="round" strokeDasharray={C}
-                      strokeDashoffset={C * (1 - disabledPct / 100)}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                      strokeDashoffset={C*(1-disabledPct/100)}
+                      style={{transform:'rotate(-90deg)',transformOrigin:'26px 26px',transition:'stroke-dashoffset 0.6s ease'}}/>
                   </svg>
-                  <span className="psb-ring-text" style={{ color: ringColor }}>{disabledPct}%</span>
+                  <span className="psb-ring-text" style={{color:ringColor}}>{disabledPct}%</span>
                 </div>
                 <div className="psb-ring-info">
-                  <div className="psb-ring-label" style={{ color: ringColor }}>
-                    {disabledPct === 0 ? 'No Savings' : disabledPct < 33 ? 'Light' : disabledPct < 66 ? 'Good' : 'Optimized'}
-                  </div>
+                  <div className="psb-ring-label" style={{color:ringColor}}>{ringLabel}</div>
                   <div className="psb-ring-sub">{disabled}/{total} disabled</div>
+                  {estBootSaved > 0 && (
+                    <div style={{marginTop:4,fontSize:9,color:'#22c55e',fontWeight:700}}>~{estBootSaved}s faster boot</div>
+                  )}
                 </div>
               </div>
               <div className="psb-stat-grid">
@@ -191,47 +197,65 @@ export default function StartupPage({ addToast }) {
                   <div className="psb-stat-cell-label">Total</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: '#22c55e' }}>{disabled}</div>
+                  <div className="psb-stat-cell-val" style={{color:'#22c55e'}}>{disabled}</div>
                   <div className="psb-stat-cell-label">Disabled</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: highImpact > 0 ? '#e03030' : undefined }}>{highImpact}</div>
+                  <div className="psb-stat-cell-val" style={{color:highImpact>0?'#e03030':'#555'}}>{highImpact}</div>
                   <div className="psb-stat-cell-label">High Imp.</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: medImpact > 0 ? '#f59e0b' : undefined }}>{medImpact}</div>
+                  <div className="psb-stat-cell-val" style={{color:medImpact>0?'#f59e0b':'#555'}}>{medImpact}</div>
                   <div className="psb-stat-cell-label">Med Imp.</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Impact breakdown bars */}
+            {/* ── Impact Breakdown ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
-              <div className="psb-title"><PlayCircle size={11} /> Impact Breakdown</div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.07 }}>
+              <div className="psb-title"><PlayCircle size={11} /> Startup Breakdown</div>
+              <div className="psb-rule">Impact Distribution</div>
               {impactBars.map(b => (
                 <div key={b.label} className="psb-bar-row">
                   <div className="psb-bar-header">
                     <span className="psb-bar-label">{b.label}</span>
-                    <span className="psb-bar-val" style={{ color: b.count > 0 ? b.color : undefined }}>{b.count}</span>
+                    <span className="psb-bar-val" style={{color:b.count>0?b.color:'#555'}}>
+                      {b.count} <span style={{opacity:0.5,fontSize:9}}>{b.note}</span>
+                    </span>
                   </div>
                   <div className="psb-bar-track">
-                    <div className="psb-bar-fill" style={{ width: `${(b.count / b.max) * 100}%`, background: b.color }} />
+                    <div className="psb-bar-fill" style={{width:`${(b.count/b.max)*100}%`,background:b.color}}/>
                   </div>
                 </div>
               ))}
+              {estBootSaved > 0 && (
+                <>
+                  <div className="psb-rule">Estimated Savings</div>
+                  <div className="psb-bar-row">
+                    <div className="psb-bar-header">
+                      <span className="psb-bar-label">Boot Time Saved</span>
+                      <span className="psb-bar-val" style={{color:'#22c55e'}}>~{estBootSaved}s</span>
+                    </div>
+                    <div className="psb-bar-track">
+                      <div className="psb-bar-fill" style={{width:`${Math.min(100, estBootSaved * 5)}%`,background:'#22c55e'}}/>
+                    </div>
+                  </div>
+                </>
+              )}
             </motion.div>
 
-            {/* Safe to disable timeline */}
+            {/* ── Safe to Disable Guide ── */}
             <motion.div className="psb-card psb-accent-blue"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
               <div className="psb-title"><ShieldOff size={11} /> Safe to Disable</div>
+              <div className="psb-rule">Common Safe Apps</div>
               <div className="psb-timeline">
-                {safeItems.map(s => (
+                {safeItems.filter(s => s.safe).map(s => (
                   <div key={s.name} className="psb-tl-item">
                     <div className="psb-tl-left">
-                      <div className="psb-tl-dot" style={{ borderColor: s.color }} />
-                      <div className="psb-tl-line" />
+                      <div className="psb-tl-dot" style={{borderColor:s.color,background:`${s.color}18`}}/>
+                      <div className="psb-tl-line"/>
                     </div>
                     <div className="psb-tl-body">
                       <div className="psb-tl-title">{s.name}</div>
@@ -240,19 +264,29 @@ export default function StartupPage({ addToast }) {
                   </div>
                 ))}
               </div>
+              <div className="psb-rule" style={{color:'#f59e0b'}}>Never Disable</div>
+              {safeItems.filter(s => !s.safe).map(s => (
+                <div key={s.name} className="psb-live-row" style={{borderColor:'rgba(245,158,11,0.2)',background:'rgba(245,158,11,0.04)'}}>
+                  <div className="psb-live-dot" style={{background:'#f59e0b'}}/>
+                  <span className="psb-live-name">{s.name}</span>
+                  <span className="psb-live-val" style={{color:'#f59e0b'}}>Keep ON</span>
+                </div>
+              ))}
             </motion.div>
 
-            {/* Tips */}
+            {/* ── Tips ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
               <div className="psb-title"><Lightbulb size={11} /> Tips</div>
               <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Fewer startup apps = faster boot</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> High impact items slow boot most</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Disable all before gaming sessions</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Re-enable if an app stops working</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> High impact items slow boot the most</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Disable All before gaming for clean sessions</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Apps still work — just launch manually</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Re-enable if something stops working</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Never disable your antivirus</li>
               </ul>
             </motion.div>
+
           </>);
         })()}
       </aside>

@@ -163,95 +163,147 @@ export default function RestorePage({ addToast, setActivePage }) {
         <aside className="restore-sidebar">
           {(() => {
             const C = 2 * Math.PI * 22;
-            const usedPct = !isPremium ? Math.round((points.length / FREE_LIMIT) * 100) : Math.min(100, Math.round((points.length / Math.max(points.length, 5)) * 100));
+            const slotUsed = !isPremium ? points.length : Math.min(points.length, 10);
+            const slotTotal = !isPremium ? FREE_LIMIT : Math.max(points.length, 10);
+            const usedPct = slotTotal > 0 ? Math.round((slotUsed / slotTotal) * 100) : 0;
             const ringColor = usedPct >= 100 ? '#e03030' : usedPct >= 66 ? '#f59e0b' : '#22c55e';
+            const slotsLeft = !isPremium ? Math.max(0, FREE_LIMIT - points.length) : '∞';
+            const pointColors = ['#22c55e','#06b6d4','#a78bfa','#f59e0b','#888'];
             return (<>
-              {/* Points ring */}
+
+              {/* ── Protection Ring ── */}
               <div className="rsb-card" style={{ borderColor: `${ringColor}33` }}>
                 <div className="rsb-card-title"><HardDrive size={12} /> System Protection</div>
                 <div className="psb-ring-wrap">
                   <div className="psb-ring">
                     <svg width="52" height="52" viewBox="0 0 52 52">
-                      <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                      <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
                       <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
                         strokeLinecap="round" strokeDasharray={C}
-                        strokeDashoffset={C * (1 - usedPct / 100)}
-                        style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                        strokeDashoffset={C*(1-usedPct/100)}
+                        style={{transform:'rotate(-90deg)',transformOrigin:'26px 26px',transition:'stroke-dashoffset 0.6s ease'}}/>
                     </svg>
-                    <span className="psb-ring-text" style={{ color: ringColor }}>{loading ? '…' : points.length}</span>
+                    <span className="psb-ring-text" style={{color:ringColor}}>{loading ? '…' : points.length}</span>
                   </div>
                   <div className="psb-ring-info">
-                    <div className="psb-ring-label" style={{ color: ringColor }}>{loading ? 'Loading…' : points.length === 0 ? 'No Points' : points.length === 1 ? '1 Point' : `${points.length} Points`}</div>
-                    <div className="psb-ring-sub">{isPremium ? 'Unlimited' : `${Math.max(0, FREE_LIMIT - points.length)}/${FREE_LIMIT} slots free`}</div>
+                    <div className="psb-ring-label" style={{color:ringColor}}>
+                      {loading ? 'Loading…' : points.length === 0 ? 'No Points' : `${points.length} Point${points.length!==1?'s':''}`}
+                    </div>
+                    <div className="psb-ring-sub">{isPremium ? 'Unlimited slots' : `${slotsLeft}/${FREE_LIMIT} slots free`}</div>
+                    {points.length >= FREE_LIMIT && !isPremium && (
+                      <div style={{marginTop:4,fontSize:9,color:'#e03030',fontWeight:700}}>⚠ Slot limit reached</div>
+                    )}
                   </div>
                 </div>
                 <div className="psb-stat-grid">
                   <div className="psb-stat-cell">
-                    <div className="psb-stat-cell-val" style={{ color: COLOR }}>{loading ? '—' : points.length}</div>
+                    <div className="psb-stat-cell-val" style={{color:COLOR}}>{loading?'—':points.length}</div>
                     <div className="psb-stat-cell-label">Points</div>
                   </div>
                   <div className="psb-stat-cell">
-                    <div className="psb-stat-cell-val" style={{ color: '#22c55e' }}>ON</div>
+                    <div className="psb-stat-cell-val" style={{color:'#22c55e'}}>ON</div>
                     <div className="psb-stat-cell-label">Protection</div>
                   </div>
                   <div className="psb-stat-cell">
-                    <div className="psb-stat-cell-val" style={{ color: points.length >= FREE_LIMIT && !isPremium ? '#e03030' : '#22c55e' }}>
-                      {isPremium ? '∞' : Math.max(0, FREE_LIMIT - points.length)}
+                    <div className="psb-stat-cell-val" style={{color:points.length>=FREE_LIMIT&&!isPremium?'#e03030':'#22c55e'}}>
+                      {slotsLeft}
                     </div>
                     <div className="psb-stat-cell-label">Slots Left</div>
                   </div>
                   <div className="psb-stat-cell">
-                    <div className="psb-stat-cell-val" style={{ fontSize: 10, paddingTop: 2 }}>
+                    <div className="psb-stat-cell-val" style={{fontSize:10,paddingTop:2}}>
                       {latest ? formatDate(latest.CreationTime).split(',')[0].split('/').slice(0,2).join('/') : '—'}
                     </div>
                     <div className="psb-stat-cell-label">Last Point</div>
                   </div>
                 </div>
+                {!isPremium && (
+                  <>
+                    <div className="psb-rule">Slot Usage</div>
+                    <div className="psb-bar-row">
+                      <div className="psb-bar-header">
+                        <span className="psb-bar-label">Used</span>
+                        <span className="psb-bar-val" style={{color:ringColor}}>{points.length}/{FREE_LIMIT}</span>
+                      </div>
+                      <div className="psb-bar-track">
+                        <div className="psb-bar-fill" style={{width:`${usedPct}%`,background:ringColor}}/>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Timeline of points */}
+              {/* ── Restore Timeline ── */}
               {points.length > 0 && (
                 <div className="rsb-card">
                   <div className="rsb-card-title"><Clock size={12} /> Restore Timeline</div>
+                  <div className="psb-rule">Most Recent First</div>
                   <div className="psb-timeline">
                     {points.slice(0, 5).map((p, i) => (
                       <div key={p.SequenceNumber} className="psb-tl-item">
                         <div className="psb-tl-left">
-                          <div className="psb-tl-dot" style={{ borderColor: i === 0 ? '#22c55e' : '#444', background: i === 0 ? 'rgba(34,197,94,0.12)' : 'transparent' }} />
-                          <div className="psb-tl-line" />
+                          <div className="psb-tl-dot" style={{
+                            borderColor: pointColors[i] || '#444',
+                            background: i === 0 ? 'rgba(34,197,94,0.15)' : 'transparent'
+                          }}/>
+                          <div className="psb-tl-line"/>
                         </div>
                         <div className="psb-tl-body">
-                          <div className="psb-tl-title">{p.Description}</div>
+                          <div className="psb-tl-title" style={{color:i===0?'#22c55e':undefined}}>
+                            {i===0 ? '★ ' : ''}{p.Description}
+                          </div>
                           <div className="psb-tl-sub">{formatDate(p.CreationTime).split(',')[0]} · #{p.SequenceNumber}</div>
                         </div>
                       </div>
                     ))}
                   </div>
+                  {points.length > 5 && (
+                    <p className="psb-info-text" style={{marginTop:6}}>+{points.length - 5} more points available</p>
+                  )}
                 </div>
               )}
 
-              {/* Best practices */}
+              {/* ── How It Works ── */}
               <div className="rsb-card">
-                <div className="rsb-card-title"><Lightbulb size={12} /> Best Practices</div>
-                <ul className="psb-tips">
-                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Create a point before any major tweak</li>
-                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Use descriptive names with dates</li>
-                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Keep 2–3 recent points minimum</li>
-                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Save all work before restoring</li>
-                </ul>
-                <div className="psb-divider" />
+                <div className="rsb-card-title"><Info size={12} /> What Gets Saved</div>
+                <div className="psb-rule">Included in Snapshot</div>
+                <div className="psb-timeline">
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#22c55e'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Registry</div><div className="psb-tl-sub">All registry keys &amp; values</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#06b6d4'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">System Files</div><div className="psb-tl-sub">Windows protected files</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#a78bfa'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Drivers</div><div className="psb-tl-sub">Device driver states</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#e03030'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">NOT Personal Files</div><div className="psb-tl-sub">Docs &amp; photos stay untouched</div></div>
+                  </div>
+                </div>
+                <div className="psb-divider"/>
                 <div className="psb-tags">
                   <span className="psb-tag green">Safe</span>
                   <span className="psb-tag blue">Registry</span>
-                  <span className="psb-tag amber">Drivers</span>
+                  <span className="psb-tag purple">Drivers</span>
+                  <span className="psb-tag amber">Reboot</span>
                 </div>
               </div>
 
-              {/* How it works */}
+              {/* ── Best Practices ── */}
               <div className="rsb-card">
-                <div className="rsb-card-title"><Info size={12} /> How It Works</div>
-                <p className="psb-info-text">Snapshots your registry, system files &amp; drivers. Does <strong>not</strong> affect personal files or documents.</p>
-                <p className="psb-info-text" style={{ marginTop: 8 }}>Restoring takes a few minutes and requires a reboot. Fully reversible.</p>
+                <div className="rsb-card-title"><Lightbulb size={12} /> Best Practices</div>
+                <ul className="psb-tips">
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Create a point <em>before</em> any major tweak</li>
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use a descriptive name with the date</li>
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Keep 2–3 recent points as a safety net</li>
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Save all open work before restoring</li>
+                  <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Restoring takes minutes &amp; needs a reboot</li>
+                </ul>
               </div>
 
               {/* PRO upsell */}

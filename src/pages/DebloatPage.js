@@ -347,30 +347,51 @@ export default function DebloatPage({ addToast }) {
         {(() => {
           const C = 2 * Math.PI * 22;
           const selPct = allItems.length > 0 ? Math.round((selected.size / allItems.length) * 100) : 0;
+          const removedCount = results.filter(r => r.ok).length;
           const ringColor = selPct === 0 ? '#444' : selPct < 33 ? '#f59e0b' : selPct < 66 ? '#e03030' : '#ef4444';
           const catBreakdown = [
-            ...CATEGORIES.map(c => ({ label: c.label.replace(' Bloat',''), count: c.apps.length, color: c.id === 'microsoft' ? '#3b82f6' : c.id === 'thirdparty' ? '#f59e0b' : c.id === 'gaming' ? '#a78bfa' : c.id === 'productivity' ? '#06b6d4' : '#22c55e' })),
+            ...CATEGORIES.map(c => ({
+              label: c.label.replace(' Bloat',''),
+              count: c.apps.length,
+              color: c.id==='microsoft'?'#3b82f6':c.id==='thirdparty'?'#f59e0b':c.id==='gaming'?'#a78bfa':c.id==='productivity'?'#06b6d4':'#22c55e'
+            })),
             { label: 'UI Tweaks', count: UI_BLOAT_ITEMS.length, color: '#f97316' },
           ];
+          const estRAMSaved = selected.size * 12;
+          const estBootSaved = Math.round(selected.size * 0.4 * 10) / 10;
+          const perfGains = [
+            { label: 'Boot Time', val: estBootSaved > 0 ? `-${estBootSaved}s est.` : '—', color: '#22c55e', pct: Math.min(100, selected.size * 8) },
+            { label: 'RAM Freed', val: estRAMSaved > 0 ? `~${estRAMSaved} MB` : '—', color: '#a78bfa', pct: Math.min(100, selected.size * 5) },
+            { label: 'BG Procs', val: selected.size > 0 ? `-${selected.size}` : '—', color: '#06b6d4', pct: Math.min(100, selected.size * 10) },
+          ];
           return (<>
-            {/* Selection Ring */}
+
+            {/* ── Selection Ring ── */}
             <motion.div className="psb-card psb-accent-red"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
-              <div className="psb-title"><Trash2 size={11} /> Selection</div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 }}>
+              <div className="psb-title"><Trash2 size={11} /> Debloat Status</div>
               <div className="psb-ring-wrap">
                 <div className="psb-ring">
                   <svg width="52" height="52" viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
                     <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
                       strokeLinecap="round" strokeDasharray={C}
-                      strokeDashoffset={C * (1 - selPct / 100)}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                      strokeDashoffset={C*(1-selPct/100)}
+                      style={{transform:'rotate(-90deg)',transformOrigin:'26px 26px',transition:'stroke-dashoffset 0.6s ease'}}/>
                   </svg>
-                  <span className="psb-ring-text" style={{ color: ringColor }}>{selPct}%</span>
+                  <span className="psb-ring-text" style={{color:ringColor}}>{selPct}%</span>
                 </div>
                 <div className="psb-ring-info">
-                  <div className="psb-ring-label" style={{ color: ringColor }}>{selected.size === 0 ? 'None Selected' : selected.size === allItems.length ? 'Select All' : `${selected.size} Items`}</div>
-                  <div className="psb-ring-sub">{selected.size} of {allItems.length} items</div>
+                  <div className="psb-ring-label" style={{color:ringColor}}>
+                    {selected.size===0?'None Selected':selected.size===allItems.length?'All Selected':`${selected.size} Marked`}
+                  </div>
+                  <div className="psb-ring-sub">{selected.size}/{allItems.length} items</div>
+                  {removing && (
+                    <div style={{marginTop:4,display:'flex',alignItems:'center',gap:5}}>
+                      <div className="psb-live-dot" style={{background:'#f59e0b'}}/>
+                      <span style={{fontSize:9,color:'#f59e0b',fontWeight:700}}>REMOVING...</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="psb-stat-grid">
@@ -379,24 +400,25 @@ export default function DebloatPage({ addToast }) {
                   <div className="psb-stat-cell-label">Total</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: selected.size > 0 ? '#ef4444' : undefined }}>{selected.size}</div>
+                  <div className="psb-stat-cell-val" style={{color:'#ef4444'}}>{selected.size}</div>
                   <div className="psb-stat-cell-label">Selected</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: removing ? '#f59e0b' : '#555' }}>{removing ? 'Run' : 'Ready'}</div>
-                  <div className="psb-stat-cell-label">Status</div>
+                  <div className="psb-stat-cell-val" style={{color:removedCount>0?'#22c55e':'#555'}}>{removedCount}</div>
+                  <div className="psb-stat-cell-label">Removed</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: results.filter(r => r.ok).length > 0 ? '#22c55e' : undefined }}>{results.filter(r => r.ok).length}</div>
-                  <div className="psb-stat-cell-label">Removed</div>
+                  <div className="psb-stat-cell-val" style={{color:removing?'#f59e0b':'#555'}}>{removing?'Run':'Ready'}</div>
+                  <div className="psb-stat-cell-label">Status</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Category breakdown bars */}
+            {/* ── Category Breakdown ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.07 }}>
               <div className="psb-title"><Target size={11} /> By Category</div>
+              <div className="psb-rule">Items per Category</div>
               {catBreakdown.map(c => (
                 <div key={c.label} className="psb-bar-row">
                   <div className="psb-bar-header">
@@ -404,36 +426,49 @@ export default function DebloatPage({ addToast }) {
                     <span className="psb-bar-val">{c.count}</span>
                   </div>
                   <div className="psb-bar-track">
-                    <div className="psb-bar-fill" style={{ width: `${(c.count / allItems.length) * 100}%`, background: c.color }} />
+                    <div className="psb-bar-fill" style={{width:`${(c.count/Math.max(allItems.length,1))*100}%`,background:c.color}}/>
                   </div>
                 </div>
               ))}
             </motion.div>
 
-            {/* Performance gains */}
+            {/* ── Estimated Gains ── */}
             <motion.div className="psb-card psb-accent-green"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
-              <div className="psb-title"><Zap size={11} /> Performance Gains</div>
-              <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label" style={{fontSize:10.5}}>Faster Boot</span></div>
-              <p className="psb-info-text" style={{marginBottom:8}}>Fewer startup background processes.</p>
-              <div className="psb-status-row"><div className="psb-dot blue" /><span className="psb-status-label" style={{fontSize:10.5}}>Freed RAM</span></div>
-              <p className="psb-info-text" style={{marginBottom:8}}>Background apps no longer consume memory.</p>
-              <div className="psb-status-row"><div className="psb-dot purple" /><span className="psb-status-label" style={{fontSize:10.5}}>Cleaner UI</span></div>
-              <p className="psb-info-text" style={{marginBottom:10}}>No more taskbar & Start menu clutter.</p>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
+              <div className="psb-title"><Zap size={11} /> Estimated Gains</div>
+              <div className="psb-rule">If Selected Items Removed</div>
+              {perfGains.map(g => (
+                <div key={g.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{g.label}</span>
+                    <span className="psb-bar-val" style={{color:g.pct>0?g.color:'#444'}}>{g.val}</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{width:`${g.pct}%`,background:g.color}}/>
+                  </div>
+                </div>
+              ))}
+              <div className="psb-divider"/>
               <div className="psb-tags">
-                <span className="psb-tag green">RAM Free</span>
-                <span className="psb-tag blue">Fast Boot</span>
-                <span className="psb-tag purple">Clean UI</span>
+                <span className="psb-tag green">Fast Boot</span>
+                <span className="psb-tag purple">RAM Free</span>
+                <span className="psb-tag blue">Less BG</span>
+                <span className="psb-tag amber">Clean UI</span>
               </div>
             </motion.div>
 
-            {/* Warning */}
+            {/* ── Warning ── */}
             <motion.div className="psb-card psb-accent-amber"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
-              <div className="psb-title" style={{color:'#f59e0b'}}><AlertTriangle size={11} /> Warning</div>
-              <p className="psb-info-text" style={{marginBottom:6}}><strong style={{color:'#f59e0b'}}>Permanent:</strong> App removal cannot be undone without reinstalling.</p>
-              <p className="psb-info-text">UI tweaks need an Explorer restart or reboot to take effect.</p>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
+              <div className="psb-title" style={{color:'#f59e0b'}}><AlertTriangle size={11} /> Important</div>
+              <ul className="psb-tips">
+                <li><AlertTriangle size={10} style={{color:'#e03030',flexShrink:0}}/> <strong style={{color:'#e03030'}}>Permanent</strong> — app removal can't be undone</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Some apps return with Windows Updates</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> UI tweaks revert with an Explorer restart</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Select All wisely — review first</li>
+              </ul>
             </motion.div>
+
           </>);
         })()}
       </aside>

@@ -886,105 +886,152 @@ export default function AppBoosterPage({ addToast }) {
         {(() => {
           const C = 2 * Math.PI * 22;
           const boostPct = apps.length > 0 ? Math.round((boostedCount / apps.length) * 100) : 0;
-          const boostColor = boostPct === 0 ? '#444' : boostPct < 34 ? '#e03030' : boostPct < 67 ? '#f59e0b' : '#a78bfa';
-          const boostLabel = boostPct === 0 ? 'Not Boosted' : boostPct < 34 ? 'Light Boost' : boostPct < 67 ? 'Moderate' : 'Well Boosted';
+          const boostColor = boostPct === 0 ? '#444' : boostPct < 34 ? '#f59e0b' : boostPct < 67 ? '#a78bfa' : '#e03030';
+          const boostLabel = boostPct === 0 ? 'None Boosted' : boostPct < 34 ? 'Light Boost' : boostPct < 67 ? 'Boosted' : 'Max Boost';
           const gameCount = apps.filter(a => !a.isApp).length;
           const appCount  = apps.filter(a =>  a.isApp).length;
-          const runningList = apps.filter(a => runningApps.has(a.id)).slice(0, 4);
+          const runningList = apps.filter(a => runningApps.has(a.id)).slice(0, 5);
+          const boostedRunning = runningList.filter(a => boosted[a.id]).length;
+          const boostTweakTypes = [
+            { label: 'CPU Priority', pct: boostedCount > 0 ? 100 : 0, color: '#e03030' },
+            { label: 'GPU Boost', pct: boostedCount > 0 ? 85 : 0, color: '#a78bfa' },
+            { label: 'Network', pct: boostedCount > 0 ? 70 : 0, color: '#06b6d4' },
+            { label: 'RAM Trim', pct: boostedCount > 0 ? 60 : 0, color: '#22c55e' },
+          ];
           return (<>
-            {/* Boost Score */}
+
+            {/* ── Boost Score ── */}
             <motion.div className="psb-card psb-accent-purple"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 }}>
               <div className="psb-title"><Rocket size={11} /> Boost Score</div>
               <div className="psb-ring-wrap">
                 <div className="psb-ring">
                   <svg width="52" height="52" viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
                     <circle cx="26" cy="26" r="22" fill="none" stroke={boostColor} strokeWidth="4"
                       strokeLinecap="round" strokeDasharray={C}
-                      strokeDashoffset={C * (1 - boostPct / 100)}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                      strokeDashoffset={C*(1-boostPct/100)}
+                      style={{transform:'rotate(-90deg)',transformOrigin:'26px 26px',transition:'stroke-dashoffset 0.6s ease'}}/>
                   </svg>
-                  <span className="psb-ring-text" style={{ color: boostColor }}>{boostPct}%</span>
+                  <span className="psb-ring-text" style={{color:boostColor}}>{boostPct}%</span>
                 </div>
                 <div className="psb-ring-info">
-                  <div className="psb-ring-label" style={{ color: boostColor }}>{boostLabel}</div>
-                  <div className="psb-ring-sub">{boostedCount} of {apps.length} boosted</div>
+                  <div className="psb-ring-label" style={{color:boostColor}}>{boostLabel}</div>
+                  <div className="psb-ring-sub">{boostedCount}/{apps.length} boosted</div>
+                  {runningList.length > 0 && (
+                    <div style={{marginTop:4,display:'flex',alignItems:'center',gap:5}}>
+                      <div className="psb-live-dot"/>
+                      <span style={{fontSize:9,color:'#22c55e',fontWeight:700}}>{runningList.length} RUNNING</span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="psb-stat-grid">
                 <div className="psb-stat-cell">
                   <div className="psb-stat-cell-val">{apps.length}</div>
-                  <div className="psb-stat-cell-label">Total</div>
+                  <div className="psb-stat-cell-label">Library</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: runningApps.size > 0 ? '#22c55e' : undefined }}>{runningApps.size}</div>
+                  <div className="psb-stat-cell-val" style={{color:runningApps.size>0?'#22c55e':undefined}}>{runningApps.size}</div>
                   <div className="psb-stat-cell-label">Running</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: boostedCount > 0 ? '#a78bfa' : undefined }}>{boostedCount}</div>
+                  <div className="psb-stat-cell-val" style={{color:boostedCount>0?'#a78bfa':undefined}}>{boostedCount}</div>
                   <div className="psb-stat-cell-label">Boosted</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: focusCount > 0 ? '#e03030' : undefined }}>{focusCount}</div>
+                  <div className="psb-stat-cell-val" style={{color:focusCount>0?'#e03030':undefined}}>{focusCount}</div>
                   <div className="psb-stat-cell-label">Focus</div>
                 </div>
               </div>
-              {apps.length > 0 && (<>
-                <div className="psb-rule">Library</div>
-                <div className="psb-bar-row">
-                  <div className="psb-bar-header"><span className="psb-bar-label">Games</span><span className="psb-bar-val">{gameCount}</span></div>
-                  <div className="psb-bar-track"><div className="psb-bar-fill" style={{ width: `${apps.length ? (gameCount/apps.length)*100 : 0}%`, background: '#a78bfa' }} /></div>
-                </div>
-                <div className="psb-bar-row">
-                  <div className="psb-bar-header"><span className="psb-bar-label">Apps</span><span className="psb-bar-val">{appCount}</span></div>
-                  <div className="psb-bar-track"><div className="psb-bar-fill" style={{ width: `${apps.length ? (appCount/apps.length)*100 : 0}%`, background: '#06b6d4' }} /></div>
-                </div>
-              </>)}
+              <div className="psb-rule">Library Mix</div>
+              <div className="psb-bar-row">
+                <div className="psb-bar-header"><span className="psb-bar-label">Games</span><span className="psb-bar-val">{gameCount}</span></div>
+                <div className="psb-bar-track"><div className="psb-bar-fill" style={{width:`${apps.length?(gameCount/apps.length)*100:0}%`,background:'#a78bfa'}}/></div>
+              </div>
+              <div className="psb-bar-row">
+                <div className="psb-bar-header"><span className="psb-bar-label">Apps</span><span className="psb-bar-val">{appCount}</span></div>
+                <div className="psb-bar-track"><div className="psb-bar-fill" style={{width:`${apps.length?(appCount/apps.length)*100:0}%`,background:'#06b6d4'}}/></div>
+              </div>
             </motion.div>
 
-            {/* Running Now */}
+            {/* ── Running Now ── */}
             {runningList.length > 0 && (
               <motion.div className="psb-card psb-accent-green"
-                initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
-                <div className="psb-title" style={{ color: '#22c55e' }}><Activity size={11} /> Running Now</div>
+                initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.07 }}>
+                <div className="psb-title" style={{color:'#22c55e'}}><Activity size={11} /> Running Now</div>
                 {runningList.map(app => (
-                  <div key={app.id} className="psb-live-row">
-                    <div className="psb-live-dot" />
+                  <div key={app.id} className="psb-live-row"
+                    style={boosted[app.id]?{borderColor:'rgba(167,139,250,0.2)',background:'rgba(167,139,250,0.04)'}:{}}>
+                    <div className="psb-live-dot" style={boosted[app.id]?{background:'#a78bfa'}:{}}/>
                     <span className="psb-live-name">{app.name}</span>
-                    <span className="psb-live-val">{boosted[app.id] ? 'Boosted' : 'Idle'}</span>
+                    <span className="psb-live-val" style={{color:boosted[app.id]?'#a78bfa':'#22c55e'}}>
+                      {focusActive[app.id] ? 'Focus' : boosted[app.id] ? 'Boosted' : 'Live'}
+                    </span>
                   </div>
                 ))}
+                {boostedRunning > 0 && (
+                  <p className="psb-info-text" style={{marginTop:6,color:'#a78bfa'}}>
+                    ✦ {boostedRunning} app{boostedRunning>1?'s':''} currently boosted &amp; running
+                  </p>
+                )}
               </motion.div>
             )}
 
-            {/* Boost Mode Guide */}
+            {/* ── What Boosting Does ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
-              <div className="psb-title"><Zap size={11} /> Boost Modes</div>
-              <div className="psb-status-row"><div className="psb-dot purple" /><span className="psb-status-label" style={{fontSize:10.5}}>Optimizations</span></div>
-              <p className="psb-info-text" style={{marginBottom:8}}>CPU, GPU, network &amp; memory tweaks tailored per app.</p>
-              <div className="psb-status-row"><div className="psb-dot red" /><span className="psb-status-label" style={{fontSize:10.5}}>Focus Mode</span></div>
-              <p className="psb-info-text" style={{marginBottom:10}}>Kills background apps for 100% resource focus.</p>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
+              <div className="psb-title"><Zap size={11} /> Boost Effects</div>
+              <div className="psb-rule">When Boosted</div>
+              {boostTweakTypes.map(t => (
+                <div key={t.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{t.label}</span>
+                    <span className="psb-bar-val" style={{color:t.pct>0?t.color:'#444'}}>{t.pct>0?'Active':'Off'}</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{width:`${t.pct}%`,background:t.color}}/>
+                  </div>
+                </div>
+              ))}
+              <div className="psb-rule">Modes</div>
+              <div className="psb-timeline">
+                <div className="psb-tl-item">
+                  <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#a78bfa'}}/><div className="psb-tl-line"/></div>
+                  <div className="psb-tl-body"><div className="psb-tl-title">Optimizations</div><div className="psb-tl-sub">CPU, GPU, network &amp; memory tweaks</div></div>
+                </div>
+                <div className="psb-tl-item">
+                  <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#e03030'}}/><div className="psb-tl-line"/></div>
+                  <div className="psb-tl-body"><div className="psb-tl-title">Focus Mode</div><div className="psb-tl-sub">Kills background apps, 100% resources</div></div>
+                </div>
+                <div className="psb-tl-item">
+                  <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#06b6d4'}}/><div className="psb-tl-line"/></div>
+                  <div className="psb-tl-body"><div className="psb-tl-title">Auto-Detect</div><div className="psb-tl-sub">Finds Steam, Epic &amp; installed games</div></div>
+                </div>
+              </div>
+              <div className="psb-divider"/>
               <div className="psb-tags">
                 <span className="psb-tag purple">Anti-Lag</span>
                 <span className="psb-tag blue">Low Ping</span>
                 <span className="psb-tag green">FPS+</span>
                 <span className="psb-tag red">Focus</span>
+                <span className="psb-tag amber">RAM</span>
               </div>
             </motion.div>
 
-            {/* Tips */}
+            {/* ── Tips ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
-              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Best Practices</div>
               <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Boost before launching for best results</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Focus Mode = best for competitive</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Auto-Detect finds Steam &amp; Epic titles</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Advanced tweaks require Premium</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Boost <em>before</em> launching for max FPS gain</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Focus Mode = best for competitive shooters</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Quick Boost on running apps instantly</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Advanced tab tweaks require Premium</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Caution tweaks are disabled by default</li>
               </ul>
             </motion.div>
+
           </>);
         })()}
       </aside>

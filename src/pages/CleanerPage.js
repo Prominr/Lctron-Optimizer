@@ -179,67 +179,98 @@ export default function CleanerPage({ addToast }) {
         {(() => {
           const C = 2 * Math.PI * 22;
           const selPct = cleanerOptions.length > 0 ? Math.round((selectedCount / cleanerOptions.length) * 100) : 0;
+          const safeCount = cleanerOptions.filter(o => !o.warning).length;
           const ringColor = selPct === 0 ? '#444' : selPct < 50 ? '#f59e0b' : '#e03030';
-          const statusColor = done ? '#22c55e' : running ? '#f59e0b' : '#555';
+          const statusColor = done ? '#22c55e' : running ? '#f59e0b' : '#888';
           const statusLabel = done ? 'Complete' : running ? 'Running' : 'Ready';
-          const cleanSteps = [
-            { label: 'Registry', sub: 'Invalid keys removed', color: '#e03030' },
-            { label: 'Temp & Cache', sub: 'Unused system files', color: '#f59e0b' },
-            { label: 'Thumbnails', sub: 'Image preview cache', color: '#06b6d4' },
-            { label: 'Telemetry', sub: 'MS diagnostic data', color: '#a78bfa' },
-            { label: 'Recycle Bin', sub: 'Permanently deleted', color: '#888' },
+          const cleanCategories = [
+            { label: 'Registry', sub: 'Invalid & orphaned keys', color: '#e03030', safe: false },
+            { label: 'Temp & Cache', sub: 'System temp files', color: '#f59e0b', safe: true },
+            { label: 'Thumbnails', sub: 'Image preview cache', color: '#06b6d4', safe: true },
+            { label: 'Telemetry', sub: 'Microsoft diagnostic', color: '#a78bfa', safe: false },
+            { label: 'Recycle Bin', sub: 'Permanently deletes', color: '#888', safe: true },
+            { label: 'DNS Cache', sub: 'Network lookup cache', color: '#22c55e', safe: true },
           ];
           return (<>
-            {/* Selection ring */}
+
+            {/* ── Cleaner Status Ring ── */}
             <motion.div className="psb-card psb-accent-red"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 }}>
               <div className="psb-title"><BarChart2 size={11} /> Cleaner Status</div>
               <div className="psb-ring-wrap">
                 <div className="psb-ring">
                   <svg width="52" height="52" viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4"/>
                     <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
                       strokeLinecap="round" strokeDasharray={C}
-                      strokeDashoffset={C * (1 - selPct / 100)}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                      strokeDashoffset={C*(1-selPct/100)}
+                      style={{transform:'rotate(-90deg)',transformOrigin:'26px 26px',transition:'stroke-dashoffset 0.6s ease'}}/>
                   </svg>
-                  <span className="psb-ring-text" style={{ color: ringColor }}>{selPct}%</span>
+                  <span className="psb-ring-text" style={{color:ringColor}}>{selPct}%</span>
                 </div>
                 <div className="psb-ring-info">
-                  <div className="psb-ring-label" style={{ color: statusColor }}>{statusLabel}</div>
-                  <div className="psb-ring-sub">{selectedCount}/{cleanerOptions.length} tasks selected</div>
+                  <div className="psb-ring-label" style={{color:statusColor}}>{statusLabel}</div>
+                  <div className="psb-ring-sub">{selectedCount}/{cleanerOptions.length} selected</div>
+                  {scheduled && (
+                    <div style={{marginTop:4,fontSize:9,color:'#22c55e',fontWeight:700}}>⏰ Auto-clean ON</div>
+                  )}
                 </div>
               </div>
               <div className="psb-stat-grid">
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: '#e03030' }}>{selectedCount}</div>
+                  <div className="psb-stat-cell-val">{cleanerOptions.length}</div>
+                  <div className="psb-stat-cell-label">Total Tasks</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{color:'#e03030'}}>{selectedCount}</div>
                   <div className="psb-stat-cell-label">Selected</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: warningCount > 0 ? '#f59e0b' : undefined }}>{warningCount}</div>
+                  <div className="psb-stat-cell-val" style={{color:warningCount>0?'#f59e0b':'#555'}}>{warningCount}</div>
                   <div className="psb-stat-cell-label">Warnings</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: statusColor }}>{statusLabel}</div>
-                  <div className="psb-stat-cell-label">Status</div>
+                  <div className="psb-stat-cell-val" style={{color:'#22c55e'}}>{safeCount}</div>
+                  <div className="psb-stat-cell-label">Safe Items</div>
                 </div>
-                <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{ color: scheduled ? '#22c55e' : '#555' }}>{scheduled ? 'ON' : 'OFF'}</div>
-                  <div className="psb-stat-cell-label">Scheduled</div>
-                </div>
+              </div>
+              <div className="psb-rule">Task Breakdown</div>
+              <div className="psb-bar-row">
+                <div className="psb-bar-header"><span className="psb-bar-label">Safe Tasks</span><span className="psb-bar-val" style={{color:'#22c55e'}}>{safeCount}</span></div>
+                <div className="psb-bar-track"><div className="psb-bar-fill" style={{width:`${(safeCount/Math.max(cleanerOptions.length,1))*100}%`,background:'#22c55e'}}/></div>
+              </div>
+              <div className="psb-bar-row">
+                <div className="psb-bar-header"><span className="psb-bar-label">Warning Items</span><span className="psb-bar-val" style={{color:'#f59e0b'}}>{warningCount}</span></div>
+                <div className="psb-bar-track"><div className="psb-bar-fill" style={{width:`${(warningCount/Math.max(cleanerOptions.length,1))*100}%`,background:'#f59e0b'}}/></div>
               </div>
             </motion.div>
 
-            {/* What gets cleaned timeline */}
+            {/* ── Cleaning Pipeline ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
-              <div className="psb-title"><Info size={11} /> Cleaning Pipeline</div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.07 }}>
+              <div className="psb-title"><Info size={11} /> What Gets Cleaned</div>
+              <div className="psb-rule">Always Safe</div>
               <div className="psb-timeline">
-                {cleanSteps.map(s => (
+                {cleanCategories.filter(c => c.safe).map(s => (
                   <div key={s.label} className="psb-tl-item">
                     <div className="psb-tl-left">
-                      <div className="psb-tl-dot" style={{ borderColor: s.color }} />
-                      <div className="psb-tl-line" />
+                      <div className="psb-tl-dot" style={{borderColor:s.color,background:`${s.color}18`}}/>
+                      <div className="psb-tl-line"/>
+                    </div>
+                    <div className="psb-tl-body">
+                      <div className="psb-tl-title">{s.label}</div>
+                      <div className="psb-tl-sub">{s.sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="psb-rule">Needs Caution</div>
+              <div className="psb-timeline">
+                {cleanCategories.filter(c => !c.safe).map(s => (
+                  <div key={s.label} className="psb-tl-item">
+                    <div className="psb-tl-left">
+                      <div className="psb-tl-dot" style={{borderColor:s.color}}/>
+                      <div className="psb-tl-line"/>
                     </div>
                     <div className="psb-tl-body">
                       <div className="psb-tl-title">{s.label}</div>
@@ -250,24 +281,28 @@ export default function CleanerPage({ addToast }) {
               </div>
             </motion.div>
 
-            {/* Tips */}
+            {/* ── Schedule & Tips ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
-              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips &amp; Schedule</div>
+              <div className="psb-rule">Best Practices</div>
               <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Run weekly for consistent results</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Schedule for auto-clean at startup</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Read warnings before enabling items</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Temp folder is always safe to clear</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Run weekly to maintain system hygiene</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Schedule for auto-clean at every startup</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Temp folder is always 100% safe</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Read warnings before enabling those items</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Registry clean: back up first if unsure</li>
               </ul>
-              <div className="psb-divider" />
+              <div className="psb-divider"/>
+              <div className="psb-rule">Safety Levels</div>
               <div className="psb-tags">
-                <span className="psb-tag green">Safe</span>
-                <span className="psb-tag amber">Warning</span>
+                <span className="psb-tag green">Always Safe</span>
+                <span className="psb-tag amber">Caution</span>
                 <span className="psb-tag blue">Cache</span>
                 <span className="psb-tag red">Registry</span>
               </div>
             </motion.div>
+
           </>);
         })()}
       </aside>
