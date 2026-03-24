@@ -344,84 +344,98 @@ export default function DebloatPage({ addToast }) {
       </div>{/* page-main */}
 
       <aside className="page-sidebar">
-        <div className="psb-card">
-          <div className="psb-title"><Trash2 size={11} /> Debloat Stats</div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Total Items</span>
-            <span className="psb-stat-val">{allItems.length}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Selected</span>
-            <span className="psb-stat-val" style={{ color: selected.size > 0 ? '#ef4444' : undefined }}>{selected.size}</span>
-          </div>
-          <div className="psb-divider" />
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Microsoft</span>
-            <span className="psb-stat-val">{CATEGORIES.find(c => c.id === 'microsoft')?.apps.length || 0}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Third-Party</span>
-            <span className="psb-stat-val">{CATEGORIES.find(c => c.id === 'thirdparty')?.apps.length || 0}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Gaming</span>
-            <span className="psb-stat-val">{CATEGORIES.find(c => c.id === 'gaming')?.apps.length || 0}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Productivity</span>
-            <span className="psb-stat-val">{CATEGORIES.find(c => c.id === 'productivity')?.apps.length || 0}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Media</span>
-            <span className="psb-stat-val">{CATEGORIES.find(c => c.id === 'media')?.apps.length || 0}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">UI Tweaks</span>
-            <span className="psb-stat-val">{UI_BLOAT_ITEMS.length}</span>
-          </div>
-        </div>
+        {(() => {
+          const C = 2 * Math.PI * 22;
+          const selPct = allItems.length > 0 ? Math.round((selected.size / allItems.length) * 100) : 0;
+          const ringColor = selPct === 0 ? '#444' : selPct < 33 ? '#f59e0b' : selPct < 66 ? '#e03030' : '#ef4444';
+          const catBreakdown = [
+            ...CATEGORIES.map(c => ({ label: c.label.replace(' Bloat',''), count: c.apps.length, color: c.id === 'microsoft' ? '#3b82f6' : c.id === 'thirdparty' ? '#f59e0b' : c.id === 'gaming' ? '#a78bfa' : c.id === 'productivity' ? '#06b6d4' : '#22c55e' })),
+            { label: 'UI Tweaks', count: UI_BLOAT_ITEMS.length, color: '#f97316' },
+          ];
+          return (<>
+            {/* Selection Ring */}
+            <motion.div className="psb-card psb-accent-red"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              <div className="psb-title"><Trash2 size={11} /> Selection</div>
+              <div className="psb-ring-wrap">
+                <div className="psb-ring">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
+                      strokeLinecap="round" strokeDasharray={C}
+                      strokeDashoffset={C * (1 - selPct / 100)}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                  </svg>
+                  <span className="psb-ring-text" style={{ color: ringColor }}>{selPct}%</span>
+                </div>
+                <div className="psb-ring-info">
+                  <div className="psb-ring-label" style={{ color: ringColor }}>{selected.size === 0 ? 'None Selected' : selected.size === allItems.length ? 'Select All' : `${selected.size} Items`}</div>
+                  <div className="psb-ring-sub">{selected.size} of {allItems.length} items</div>
+                </div>
+              </div>
+              <div className="psb-stat-grid">
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val">{allItems.length}</div>
+                  <div className="psb-stat-cell-label">Total</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: selected.size > 0 ? '#ef4444' : undefined }}>{selected.size}</div>
+                  <div className="psb-stat-cell-label">Selected</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: removing ? '#f59e0b' : '#555' }}>{removing ? 'Run' : 'Ready'}</div>
+                  <div className="psb-stat-cell-label">Status</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: results.filter(r => r.ok).length > 0 ? '#22c55e' : undefined }}>{results.filter(r => r.ok).length}</div>
+                  <div className="psb-stat-cell-label">Removed</div>
+                </div>
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Shield size={11} /> Safety Info</div>
-          <div className="psb-status-row"><div className="psb-dot orange" /><span className="psb-status-label">App Removal</span></div>
-          <p className="psb-info-text" style={{marginBottom:8}}>Permanent removal via PowerShell</p>
-          <div className="psb-status-row"><div className="psb-dot blue" /><span className="psb-status-label">UI Tweaks</span></div>
-          <p className="psb-info-text">Registry modifications</p>
-        </div>
+            {/* Category breakdown bars */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              <div className="psb-title"><Target size={11} /> By Category</div>
+              {catBreakdown.map(c => (
+                <div key={c.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{c.label}</span>
+                    <span className="psb-bar-val">{c.count}</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{ width: `${(c.count / allItems.length) * 100}%`, background: c.color }} />
+                  </div>
+                </div>
+              ))}
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Info size={11} /> What Gets Removed</div>
-          <ul className="psb-tips">
-            <li><CheckCircle size={10} style={{color:'#ef4444',flexShrink:0}} /> Pre-installed Microsoft apps</li>
-            <li><CheckCircle size={10} style={{color:'#ef4444',flexShrink:0}} /> Third-party bloatware</li>
-            <li><CheckCircle size={10} style={{color:'#ef4444',flexShrink:0}} /> Gaming platform extras</li>
-            <li><CheckCircle size={10} style={{color:'#ef4444',flexShrink:0}} /> Unwanted taskbar items</li>
-            <li><CheckCircle size={10} style={{color:'#ef4444',flexShrink:0}} /> Search & Start menu bloat</li>
-          </ul>
-        </div>
+            {/* Performance gains */}
+            <motion.div className="psb-card psb-accent-green"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
+              <div className="psb-title"><Zap size={11} /> Performance Gains</div>
+              <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label" style={{fontSize:10.5}}>Faster Boot</span></div>
+              <p className="psb-info-text" style={{marginBottom:8}}>Fewer startup background processes.</p>
+              <div className="psb-status-row"><div className="psb-dot blue" /><span className="psb-status-label" style={{fontSize:10.5}}>Freed RAM</span></div>
+              <p className="psb-info-text" style={{marginBottom:8}}>Background apps no longer consume memory.</p>
+              <div className="psb-status-row"><div className="psb-dot purple" /><span className="psb-status-label" style={{fontSize:10.5}}>Cleaner UI</span></div>
+              <p className="psb-info-text" style={{marginBottom:10}}>No more taskbar & Start menu clutter.</p>
+              <div className="psb-tags">
+                <span className="psb-tag green">RAM Free</span>
+                <span className="psb-tag blue">Fast Boot</span>
+                <span className="psb-tag purple">Clean UI</span>
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><AlertTriangle size={11} /> Warning</div>
-          <p className="psb-info-text" style={{color:'#f59e0b',marginBottom:4}}>
-            <strong>⚠️ Permanent Changes</strong>
-          </p>
-          <p className="psb-info-text" style={{marginBottom:8}}>
-            App removal cannot be undone. Some apps may return with Windows updates.
-          </p>
-          <p className="psb-info-text">
-            UI tweaks require Explorer restart or system reboot to take effect.
-          </p>
-        </div>
-
-        <div className="psb-card">
-          <div className="psb-title"><Zap size={11} /> Performance Gains</div>
-          <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label">Faster Boot</span></div>
-          <p className="psb-info-text" style={{marginBottom:8}}>Less startup processes</p>
-          <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label">Cleaner UI</span></div>
-          <p className="psb-info-text" style={{marginBottom:8}}>Minimal taskbar & Start</p>
-          <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label">More Resources</span></div>
-          <p className="psb-info-text">Free RAM & CPU cycles</p>
-        </div>
+            {/* Warning */}
+            <motion.div className="psb-card psb-accent-amber"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
+              <div className="psb-title" style={{color:'#f59e0b'}}><AlertTriangle size={11} /> Warning</div>
+              <p className="psb-info-text" style={{marginBottom:6}}><strong style={{color:'#f59e0b'}}>Permanent:</strong> App removal cannot be undone without reinstalling.</p>
+              <p className="psb-info-text">UI tweaks need an Explorer restart or reboot to take effect.</p>
+            </motion.div>
+          </>);
+        })()}
       </aside>
       </div>{/* page-body */}
 

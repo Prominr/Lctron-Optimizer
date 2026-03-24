@@ -3,6 +3,7 @@ import { Shield, Plus, RotateCcw, RefreshCw, Clock, Crown, CheckCircle, AlertTri
 import PageHeader from '../components/PageHeader';
 import { usePremium } from '../context/PremiumContext';
 import './RestorePage.css';
+import './PageSidebar.css';
 
 const FREE_LIMIT = 3;
 
@@ -160,66 +161,111 @@ export default function RestorePage({ addToast, setActivePage }) {
 
         {/* ── Info sidebar ── */}
         <aside className="restore-sidebar">
-          {/* Status card */}
-          <div className="rsb-card">
-            <div className="rsb-card-title"><HardDrive size={12} /> System Protection</div>
-            <div className="rsb-status-row">
-              <div className="rsb-status-dot active" />
-              <span className="rsb-status-label">Enabled on C:\</span>
-            </div>
-            <div className="rsb-divider" />
-            <div className="rsb-stat-row">
-              <span className="rsb-stat-label">Total points</span>
-              <span className="rsb-stat-val">{loading ? '—' : points.length}</span>
-            </div>
-            <div className="rsb-stat-row">
-              <span className="rsb-stat-label">Latest</span>
-              <span className="rsb-stat-val" style={{ fontSize: 10 }}>
-                {latest ? formatDate(latest.CreationTime).split(',')[0] : '—'}
-              </span>
-            </div>
-            {!isPremium && (
-              <div className="rsb-stat-row">
-                <span className="rsb-stat-label">Free slots</span>
-                <span className="rsb-stat-val" style={{ color: points.length >= FREE_LIMIT ? '#ef4444' : '#22c55e' }}>
-                  {Math.max(0, FREE_LIMIT - points.length)}/{FREE_LIMIT}
-                </span>
+          {(() => {
+            const C = 2 * Math.PI * 22;
+            const usedPct = !isPremium ? Math.round((points.length / FREE_LIMIT) * 100) : Math.min(100, Math.round((points.length / Math.max(points.length, 5)) * 100));
+            const ringColor = usedPct >= 100 ? '#e03030' : usedPct >= 66 ? '#f59e0b' : '#22c55e';
+            return (<>
+              {/* Points ring */}
+              <div className="rsb-card" style={{ borderColor: `${ringColor}33` }}>
+                <div className="rsb-card-title"><HardDrive size={12} /> System Protection</div>
+                <div className="psb-ring-wrap">
+                  <div className="psb-ring">
+                    <svg width="52" height="52" viewBox="0 0 52 52">
+                      <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                      <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
+                        strokeLinecap="round" strokeDasharray={C}
+                        strokeDashoffset={C * (1 - usedPct / 100)}
+                        style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                    </svg>
+                    <span className="psb-ring-text" style={{ color: ringColor }}>{loading ? '…' : points.length}</span>
+                  </div>
+                  <div className="psb-ring-info">
+                    <div className="psb-ring-label" style={{ color: ringColor }}>{loading ? 'Loading…' : points.length === 0 ? 'No Points' : points.length === 1 ? '1 Point' : `${points.length} Points`}</div>
+                    <div className="psb-ring-sub">{isPremium ? 'Unlimited' : `${Math.max(0, FREE_LIMIT - points.length)}/${FREE_LIMIT} slots free`}</div>
+                  </div>
+                </div>
+                <div className="psb-stat-grid">
+                  <div className="psb-stat-cell">
+                    <div className="psb-stat-cell-val" style={{ color: COLOR }}>{loading ? '—' : points.length}</div>
+                    <div className="psb-stat-cell-label">Points</div>
+                  </div>
+                  <div className="psb-stat-cell">
+                    <div className="psb-stat-cell-val" style={{ color: '#22c55e' }}>ON</div>
+                    <div className="psb-stat-cell-label">Protection</div>
+                  </div>
+                  <div className="psb-stat-cell">
+                    <div className="psb-stat-cell-val" style={{ color: points.length >= FREE_LIMIT && !isPremium ? '#e03030' : '#22c55e' }}>
+                      {isPremium ? '∞' : Math.max(0, FREE_LIMIT - points.length)}
+                    </div>
+                    <div className="psb-stat-cell-label">Slots Left</div>
+                  </div>
+                  <div className="psb-stat-cell">
+                    <div className="psb-stat-cell-val" style={{ fontSize: 10, paddingTop: 2 }}>
+                      {latest ? formatDate(latest.CreationTime).split(',')[0].split('/').slice(0,2).join('/') : '—'}
+                    </div>
+                    <div className="psb-stat-cell-label">Last Point</div>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Tips */}
-          <div className="rsb-card">
-            <div className="rsb-card-title"><Lightbulb size={12} /> Best Practices</div>
-            <ul className="rsb-tips">
-              <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Create a point before any major tweak</li>
-              <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Use descriptive names with dates</li>
-              <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Keep 2–3 recent points minimum</li>
-              <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Save all work before restoring</li>
-            </ul>
-          </div>
+              {/* Timeline of points */}
+              {points.length > 0 && (
+                <div className="rsb-card">
+                  <div className="rsb-card-title"><Clock size={12} /> Restore Timeline</div>
+                  <div className="psb-timeline">
+                    {points.slice(0, 5).map((p, i) => (
+                      <div key={p.SequenceNumber} className="psb-tl-item">
+                        <div className="psb-tl-left">
+                          <div className="psb-tl-dot" style={{ borderColor: i === 0 ? '#22c55e' : '#444', background: i === 0 ? 'rgba(34,197,94,0.12)' : 'transparent' }} />
+                          <div className="psb-tl-line" />
+                        </div>
+                        <div className="psb-tl-body">
+                          <div className="psb-tl-title">{p.Description}</div>
+                          <div className="psb-tl-sub">{formatDate(p.CreationTime).split(',')[0]} · #{p.SequenceNumber}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          {/* How it works */}
-          <div className="rsb-card">
-            <div className="rsb-card-title"><Info size={12} /> How It Works</div>
-            <p className="rsb-info-text">
-              Windows System Restore snapshots your registry, system files and drivers. It does <strong>not</strong> affect personal files like documents or photos.
-            </p>
-            <p className="rsb-info-text" style={{ marginTop: 8 }}>
-              Restoring takes a few minutes and requires a reboot. The process is fully reversible.
-            </p>
-          </div>
-
-          {/* PRO upsell if not premium */}
-          {!isPremium && (
-            <button className="rsb-pro-card" onClick={() => setActivePage && setActivePage('premium')}>
-              <Crown size={13} style={{ color: '#a78bfa' }} />
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#a78bfa' }}>Unlock Unlimited</div>
-                <div style={{ fontSize: 10, color: 'rgba(167,139,250,0.6)', marginTop: 2 }}>Free plan limited to 3 restore points</div>
+              {/* Best practices */}
+              <div className="rsb-card">
+                <div className="rsb-card-title"><Lightbulb size={12} /> Best Practices</div>
+                <ul className="psb-tips">
+                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Create a point before any major tweak</li>
+                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Use descriptive names with dates</li>
+                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Keep 2–3 recent points minimum</li>
+                  <li><CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} /> Save all work before restoring</li>
+                </ul>
+                <div className="psb-divider" />
+                <div className="psb-tags">
+                  <span className="psb-tag green">Safe</span>
+                  <span className="psb-tag blue">Registry</span>
+                  <span className="psb-tag amber">Drivers</span>
+                </div>
               </div>
-            </button>
-          )}
+
+              {/* How it works */}
+              <div className="rsb-card">
+                <div className="rsb-card-title"><Info size={12} /> How It Works</div>
+                <p className="psb-info-text">Snapshots your registry, system files &amp; drivers. Does <strong>not</strong> affect personal files or documents.</p>
+                <p className="psb-info-text" style={{ marginTop: 8 }}>Restoring takes a few minutes and requires a reboot. Fully reversible.</p>
+              </div>
+
+              {/* PRO upsell */}
+              {!isPremium && (
+                <button className="rsb-pro-card" onClick={() => setActivePage && setActivePage('premium')}>
+                  <Crown size={13} style={{ color: '#a78bfa' }} />
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#a78bfa' }}>Unlock Unlimited</div>
+                    <div style={{ fontSize: 10, color: 'rgba(167,139,250,0.6)', marginTop: 2 }}>Free plan limited to 3 restore points</div>
+                  </div>
+                </button>
+              )}
+            </>);
+          })()}
         </aside>
       </div>
     </div>

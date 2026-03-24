@@ -176,48 +176,100 @@ export default function CleanerPage({ addToast }) {
       </div>{/* page-main */}
 
       <aside className="page-sidebar">
-        <div className="psb-card">
-          <div className="psb-title"><BarChart2 size={11} /> Selection</div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Selected</span>
-            <span className="psb-stat-val" style={{color:'#e03030'}}>{selectedCount} / {cleanerOptions.length}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">With warnings</span>
-            <span className="psb-stat-val" style={{color: warningCount > 0 ? '#f59e0b' : undefined}}>{warningCount}</span>
-          </div>
-          <div className="psb-divider" />
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Status</span>
-            <span className="psb-stat-val" style={{color: done ? '#22c55e' : running ? '#f59e0b' : '#555'}}>
-              {done ? 'Complete' : running ? 'Running' : 'Ready'}
-            </span>
-          </div>
-          {scheduled && (
-            <div className="psb-stat-row">
-              <span className="psb-stat-label">Auto-clean</span>
-              <span className="psb-stat-val" style={{color:'#22c55e'}}>At startup</span>
-            </div>
-          )}
-        </div>
+        {(() => {
+          const C = 2 * Math.PI * 22;
+          const selPct = cleanerOptions.length > 0 ? Math.round((selectedCount / cleanerOptions.length) * 100) : 0;
+          const ringColor = selPct === 0 ? '#444' : selPct < 50 ? '#f59e0b' : '#e03030';
+          const statusColor = done ? '#22c55e' : running ? '#f59e0b' : '#555';
+          const statusLabel = done ? 'Complete' : running ? 'Running' : 'Ready';
+          const cleanSteps = [
+            { label: 'Registry', sub: 'Invalid keys removed', color: '#e03030' },
+            { label: 'Temp & Cache', sub: 'Unused system files', color: '#f59e0b' },
+            { label: 'Thumbnails', sub: 'Image preview cache', color: '#06b6d4' },
+            { label: 'Telemetry', sub: 'MS diagnostic data', color: '#a78bfa' },
+            { label: 'Recycle Bin', sub: 'Permanently deleted', color: '#888' },
+          ];
+          return (<>
+            {/* Selection ring */}
+            <motion.div className="psb-card psb-accent-red"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              <div className="psb-title"><BarChart2 size={11} /> Cleaner Status</div>
+              <div className="psb-ring-wrap">
+                <div className="psb-ring">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
+                      strokeLinecap="round" strokeDasharray={C}
+                      strokeDashoffset={C * (1 - selPct / 100)}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                  </svg>
+                  <span className="psb-ring-text" style={{ color: ringColor }}>{selPct}%</span>
+                </div>
+                <div className="psb-ring-info">
+                  <div className="psb-ring-label" style={{ color: statusColor }}>{statusLabel}</div>
+                  <div className="psb-ring-sub">{selectedCount}/{cleanerOptions.length} tasks selected</div>
+                </div>
+              </div>
+              <div className="psb-stat-grid">
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: '#e03030' }}>{selectedCount}</div>
+                  <div className="psb-stat-cell-label">Selected</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: warningCount > 0 ? '#f59e0b' : undefined }}>{warningCount}</div>
+                  <div className="psb-stat-cell-label">Warnings</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: statusColor }}>{statusLabel}</div>
+                  <div className="psb-stat-cell-label">Status</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: scheduled ? '#22c55e' : '#555' }}>{scheduled ? 'ON' : 'OFF'}</div>
+                  <div className="psb-stat-cell-label">Scheduled</div>
+                </div>
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Info size={11} /> What Gets Cleaned</div>
-          <p className="psb-info-text"><strong>Registry</strong> — invalid keys left by uninstalled apps.</p>
-          <p className="psb-info-text"><strong>Temp/Cache</strong> — files Windows no longer needs.</p>
-          <p className="psb-info-text"><strong>Thumbnails</strong> — image previews that waste disk space.</p>
-          <p className="psb-info-text"><strong>Telemetry</strong> — diagnostic data sent to Microsoft.</p>
-        </div>
+            {/* What gets cleaned timeline */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              <div className="psb-title"><Info size={11} /> Cleaning Pipeline</div>
+              <div className="psb-timeline">
+                {cleanSteps.map(s => (
+                  <div key={s.label} className="psb-tl-item">
+                    <div className="psb-tl-left">
+                      <div className="psb-tl-dot" style={{ borderColor: s.color }} />
+                      <div className="psb-tl-line" />
+                    </div>
+                    <div className="psb-tl-body">
+                      <div className="psb-tl-title">{s.label}</div>
+                      <div className="psb-tl-sub">{s.sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Lightbulb size={11} /> Tips</div>
-          <ul className="psb-tips">
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Run weekly for best results</li>
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Schedule for auto-clean at startup</li>
-            <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Read warnings before enabling</li>
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Temp folder is always safe to clear</li>
-          </ul>
-        </div>
+            {/* Tips */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              <ul className="psb-tips">
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Run weekly for consistent results</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Schedule for auto-clean at startup</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Read warnings before enabling items</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Temp folder is always safe to clear</li>
+              </ul>
+              <div className="psb-divider" />
+              <div className="psb-tags">
+                <span className="psb-tag green">Safe</span>
+                <span className="psb-tag amber">Warning</span>
+                <span className="psb-tag blue">Cache</span>
+                <span className="psb-tag red">Registry</span>
+              </div>
+            </motion.div>
+          </>);
+        })()}
       </aside>
       </div>{/* page-body */}
     </div>

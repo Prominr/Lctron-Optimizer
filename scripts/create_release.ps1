@@ -4,11 +4,9 @@ param(
 
 $owner = "Prominr"
 $repo  = "Lctron-Optimizer"
-$tag   = "v1.7.29"
-$name  = "Lctron Optimizer v1.7.29"
-$body  = "## Lctron Optimizer v1.7.29`n`n### Changes`n- **Themes Pro-gated**: All themes except Crimson Red (default) now require Premium`n- **Wallpapers Pro-gated**: All animated wallpapers except None now require Premium`n- **Particles Pro-gated**: All particle effects except None now require Premium`n- Free users see lock badges on locked items with a purple notice banner + Upgrade link`n- Clicking any locked appearance option redirects to the Upgrade page`n"
-$asset = Join-Path $PSScriptRoot "..\dist\Lctron Optimizer Setup.exe"
-
+$tag   = "v1.7.31"
+$name  = "Lctron Optimizer v1.7.31"
+$body  = "## Lctron Optimizer v1.7.31`n`n### Changes`n- **Themes Pro-gated**: All themes except Crimson Red (default) now require Premium`n- **Wallpapers Pro-gated**: All animated wallpapers except None now require Premium`n- **Particles Pro-gated**: All particle effects except None now require Premium`n- Free users see lock badges on locked items with a purple notice banner + Upgrade link`n- Clicking any locked appearance option redirects to the Upgrade page`n"
 if (-not $Token) {
     Write-Error "GH_TOKEN not set. Pass -Token or set GH_TOKEN env var."
     exit 1
@@ -32,7 +30,7 @@ if ($existing) {
 # Create release
 $releaseBody = @{
     tag_name         = $tag
-    target_commitish = "main"
+    target_commitish = "master"
     name             = $name
     body             = $body
     draft            = $false
@@ -45,26 +43,32 @@ $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/rel
 
 Write-Host "Release created: $($release.html_url)"
 
-# Upload installer
-$uploadUrl = $release.upload_url -replace '\{.*\}', ''
-$fileName  = "Lctron-Optimizer-Setup-$tag.exe"
-$assetPath = Resolve-Path $asset
-
+$uploadUrl    = $release.upload_url -replace '\{.*\}', ''
+$distDir      = Join-Path $PSScriptRoot "..\dist"
 $uploadHeaders = $headers.Clone()
 $uploadHeaders["Content-Type"] = "application/octet-stream"
 
-Write-Host "Uploading $fileName..."
-$result = Invoke-RestMethod -Uri "${uploadUrl}?name=$fileName" `
-    -Headers $uploadHeaders -Method Post -InFile $assetPath
-Write-Host "Uploaded: $($result.browser_download_url)"
+# Upload installer (name must match latest.yml exactly)
+$setupPath = Join-Path $distDir "Lctron Optimizer Setup.exe"
+Write-Host "Uploading installer..."
+$r1 = Invoke-RestMethod -Uri "${uploadUrl}?name=Lctron-Optimizer-Setup.exe" `
+    -Headers $uploadHeaders -Method Post -InFile $setupPath
+Write-Host "Installer: $($r1.browser_download_url)"
 
-# Also upload blockmap for delta updates
-$blockmapPath = "$assetPath.blockmap"
-if (Test-Path $blockmapPath) {
+# Upload blockmap
+$bmPath = Join-Path $distDir "Lctron Optimizer Setup.exe.blockmap"
+if (Test-Path $bmPath) {
     Write-Host "Uploading blockmap..."
-    $bm = Invoke-RestMethod -Uri "${uploadUrl}?name=$fileName.blockmap" `
-        -Headers $uploadHeaders -Method Post -InFile $blockmapPath
-    Write-Host "Blockmap uploaded: $($bm.browser_download_url)"
+    $r2 = Invoke-RestMethod -Uri "${uploadUrl}?name=Lctron-Optimizer-Setup.exe.blockmap" `
+        -Headers $uploadHeaders -Method Post -InFile $bmPath
+    Write-Host "Blockmap: $($r2.browser_download_url)"
 }
 
-Write-Host "`nDone! Release $tag published."
+# Upload latest.yml — this is what electron-updater fetches to detect new versions
+$ymlPath = Join-Path $distDir "latest.yml"
+Write-Host "Uploading latest.yml..."
+$r3 = Invoke-RestMethod -Uri "${uploadUrl}?name=latest.yml" `
+    -Headers $uploadHeaders -Method Post -InFile $ymlPath
+Write-Host "latest.yml: $($r3.browser_download_url)"
+
+Write-Host "`nDone! Release $tag published at $($release.html_url)"

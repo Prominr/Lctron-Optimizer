@@ -113,3 +113,203 @@
   padding: 2px 6px;
   border-radius: 4px;
 }
+
+/* ── Scrollable sidebar ─────────────────────────────────────────── */
+.page-sidebar {
+  overflow-y: auto;
+  max-height: 100%;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #1e1e1e transparent;
+}
+.page-sidebar::-webkit-scrollbar { width: 3px; }
+.page-sidebar::-webkit-scrollbar-track { background: transparent; }
+.page-sidebar::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 2px; }
+
+/* ── Mini progress bar row ──────────────────────────────────────── */
+.psb-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 9px;
+}
+.psb-bar-row:last-child { margin-bottom: 0; }
+.psb-bar-header { display: flex; justify-content: space-between; align-items: center; }
+.psb-bar-label { font-size: 10.5px; color: var(--text-muted); }
+.psb-bar-val   { font-size: 10.5px; font-weight: 700; color: var(--text-primary); }
+.psb-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.psb-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* ── 2-column stat grid ─────────────────────────────────────────── */
+.psb-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.psb-stat-cell {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 8px 9px;
+}
+.psb-stat-cell-val {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.psb-stat-cell-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Ring chart ─────────────────────────────────────────────────── */
+.psb-ring-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 0 10px;
+}
+.psb-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.psb-ring svg { display: block; }
+.psb-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+.psb-ring-info { flex: 1; min-width: 0; }
+.psb-ring-label { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.psb-ring-sub   { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+/* ── Live pulse row ─────────────────────────────────────────────── */
+.psb-live-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(34,197,94,0.04);
+  border: 1px solid rgba(34,197,94,0.14);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.psb-live-row:last-child { margin-bottom: 0; }
+.psb-live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  animation: psb-pulse 1.5s ease-in-out infinite;
+}
+@keyframes psb-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.3; transform: scale(0.6); }
+}
+.psb-live-name {
+  font-size: 10.5px;
+  color: var(--text-primary);
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.psb-live-val { font-size: 10px; font-weight: 700; color: #22c55e; flex-shrink: 0; }
+
+/* ── Tag chips ──────────────────────────────────────────────────── */
+.psb-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.psb-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid;
+}
+.psb-tag.green  { color: #22c55e; border-color: rgba(34,197,94,0.3);   background: rgba(34,197,94,0.08); }
+.psb-tag.red    { color: #e03030; border-color: rgba(224,48,48,0.3);   background: rgba(224,48,48,0.08); }
+.psb-tag.amber  { color: #f59e0b; border-color: rgba(245,158,11,0.3);  background: rgba(245,158,11,0.08); }
+.psb-tag.blue   { color: #06b6d4; border-color: rgba(6,182,212,0.3);   background: rgba(6,182,212,0.08); }
+.psb-tag.purple { color: #a78bfa; border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.08); }
+.psb-tag.gray   { color: #888;    border-color: rgba(136,136,136,0.25); background: rgba(136,136,136,0.06); }
+
+/* ── Accent card borders ────────────────────────────────────────── */
+.psb-card.psb-accent-green  { border-color: rgba(34,197,94,0.22); }
+.psb-card.psb-accent-red    { border-color: rgba(224,48,48,0.22); }
+.psb-card.psb-accent-amber  { border-color: rgba(245,158,11,0.22); }
+.psb-card.psb-accent-blue   { border-color: rgba(6,182,212,0.22); }
+.psb-card.psb-accent-purple { border-color: rgba(167,139,250,0.22); }
+
+/* ── Sub section rule ───────────────────────────────────────────── */
+.psb-rule {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 8px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.psb-rule::before, .psb-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
+
+/* ── Timeline ───────────────────────────────────────────────────── */
+.psb-timeline { display: flex; flex-direction: column; }
+.psb-tl-item  { display: flex; gap: 9px; padding-bottom: 10px; }
+.psb-tl-item:last-child { padding-bottom: 0; }
+.psb-tl-left  { display: flex; flex-direction: column; align-items: center; width: 8px; flex-shrink: 0; }
+.psb-tl-dot   { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid; flex-shrink: 0; }
+.psb-tl-line  { width: 1px; flex: 1; margin-top: 3px; background: rgba(255,255,255,0.07); }
+.psb-tl-item:last-child .psb-tl-line { display: none; }
+.psb-tl-body  { flex: 1; min-width: 0; }
+.psb-tl-title { font-size: 10.5px; font-weight: 600; color: var(--text-primary); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.psb-tl-sub   { font-size: 9.5px; color: var(--text-muted); margin-top: 1px; }
+
+/* ── Big score number ───────────────────────────────────────────── */
+.psb-big-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 0 12px;
+  gap: 2px;
+}
+.psb-big-num {
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.psb-big-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}

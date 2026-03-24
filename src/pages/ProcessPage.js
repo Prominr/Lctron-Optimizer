@@ -140,45 +140,104 @@ export default function ProcessPage({ addToast }) {
       </div>{/* page-main */}
 
       <aside className="page-sidebar">
-        <div className="psb-card">
-          <div className="psb-title"><Activity size={11} /> Live Stats</div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Processes</span>
-            <span className="psb-stat-val" style={{color:COLOR}}>{procs.length}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Total RAM</span>
-            <span className="psb-stat-val" style={{color:'#a78bfa'}}>{totalRAM.toFixed(0)} MB</span>
-          </div>
-          {topCPU && (
-            <div className="psb-stat-row">
-              <span className="psb-stat-label">Top CPU</span>
-              <span className="psb-stat-val" style={{color:'#f87171',fontSize:10}}>{topCPU.Name}</span>
-            </div>
-          )}
-        </div>
-
-        {topRAM.length > 0 && (
-          <div className="psb-card">
-            <div className="psb-title"><MemoryStick size={11} /> Top RAM Users</div>
-            {topRAM.map(p => (
-              <div key={p.Id} className="psb-stat-row">
-                <span className="psb-stat-label" style={{maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.Name}</span>
-                <span className="psb-stat-val" style={{color:'#a78bfa',fontSize:10}}>{(p.RAM||0).toFixed(0)} MB</span>
+        {(() => {
+          const C = 2 * Math.PI * 22;
+          const maxRAM = 16384;
+          const ramPct = Math.min(100, Math.round((totalRAM / maxRAM) * 100));
+          const ramColor = ramPct < 50 ? '#22c55e' : ramPct < 75 ? '#f59e0b' : '#e03030';
+          const healthScore = Math.max(0, 100 - Math.min(100, procs.length * 0.5));
+          const healthColor = healthScore > 70 ? '#22c55e' : healthScore > 40 ? '#f59e0b' : '#e03030';
+          const healthLabel = healthScore > 70 ? 'Healthy' : healthScore > 40 ? 'Moderate' : 'Loaded';
+          return (<>
+            {/* System Health Ring */}
+            <motion.div className="psb-card psb-accent-green"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              <div className="psb-title"><Activity size={11} /> System Health</div>
+              <div className="psb-ring-wrap">
+                <div className="psb-ring">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke={healthColor} strokeWidth="4"
+                      strokeLinecap="round" strokeDasharray={C}
+                      strokeDashoffset={C * (1 - healthScore / 100)}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                  </svg>
+                  <span className="psb-ring-text" style={{ color: healthColor }}>{Math.round(healthScore)}%</span>
+                </div>
+                <div className="psb-ring-info">
+                  <div className="psb-ring-label" style={{ color: healthColor }}>{healthLabel}</div>
+                  <div className="psb-ring-sub">{procs.length} processes</div>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="psb-stat-grid">
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: COLOR }}>{procs.length}</div>
+                  <div className="psb-stat-cell-label">Processes</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: '#a78bfa' }}>{totalRAM.toFixed(0)}</div>
+                  <div className="psb-stat-cell-label">RAM (MB)</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: topCPU ? '#f87171' : '#555', fontSize: 10, paddingTop: 2 }}>{topCPU?.Name?.slice(0,8) || '—'}</div>
+                  <div className="psb-stat-cell-label">Top CPU</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-live-dot" style={{ marginTop: 4, marginBottom: 2 }} />
+                  <div className="psb-stat-cell-label">Live 3s</div>
+                </div>
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Lightbulb size={11} /> Tips</div>
-          <ul className="psb-tips">
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Kill chrome/msedge tabs to free RAM</li>
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Search to find a specific process</li>
-            <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Don't kill system processes</li>
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> List auto-refreshes every 3s</li>
-          </ul>
-        </div>
+            {/* RAM usage bar */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              <div className="psb-title"><MemoryStick size={11} /> Memory Usage</div>
+              <div className="psb-bar-row">
+                <div className="psb-bar-header">
+                  <span className="psb-bar-label">RAM In Use</span>
+                  <span className="psb-bar-val" style={{ color: ramColor }}>{totalRAM.toFixed(0)} MB</span>
+                </div>
+                <div className="psb-bar-track">
+                  <div className="psb-bar-fill" style={{ width: `${ramPct}%`, background: ramColor }} />
+                </div>
+              </div>
+              {topRAM.length > 0 && (<>
+                <div className="psb-rule">Top Consumers</div>
+                {topRAM.slice(0, 5).map((p, i) => (
+                  <div key={p.Id} className="psb-bar-row">
+                    <div className="psb-bar-header">
+                      <span className="psb-bar-label" style={{ maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.Name}</span>
+                      <span className="psb-bar-val" style={{ color: '#a78bfa', fontSize: 10 }}>{(p.RAM||0).toFixed(0)} MB</span>
+                    </div>
+                    <div className="psb-bar-track">
+                      <div className="psb-bar-fill" style={{ width: `${Math.min(100, ((p.RAM||0) / Math.max(totalRAM, 1)) * 100)}%`, background: i === 0 ? '#e03030' : i === 1 ? '#f59e0b' : '#a78bfa' }} />
+                    </div>
+                  </div>
+                ))}
+              </>)}
+            </motion.div>
+
+            {/* Tips */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              <ul className="psb-tips">
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Kill chrome/msedge tabs to free RAM</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Search to instantly find a process</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Never kill system/svchost processes</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> List auto-refreshes every 3 seconds</li>
+              </ul>
+              <div className="psb-divider" />
+              <div className="psb-tags">
+                <span className="psb-tag green">Live</span>
+                <span className="psb-tag purple">RAM</span>
+                <span className="psb-tag red">CPU</span>
+                <span className="psb-tag amber">Kill</span>
+              </div>
+            </motion.div>
+          </>);
+        })()}
       </aside>
       </div>{/* page-body */}
     </div>

@@ -286,44 +286,99 @@ export default function PowerPlanPage({ addToast }) {
       </div>{/* page-main */}
 
       <aside className="page-sidebar">
-        <div className="psb-card">
-          <div className="psb-title"><BatteryCharging size={11} /> Active Plan</div>
-          <div className="psb-status-row">
-            <div className={`psb-dot ${activePlan === 'lctron' ? 'red' : activePlan === 'high-performance' ? 'amber' : 'green'}`} />
-            <span className="psb-status-label" style={{fontSize:11}}>{activePlanObj?.name || 'Detecting...'}</span>
-          </div>
-          <div className="psb-divider" />
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Tweaks on</span>
-            <span className="psb-stat-val" style={{color: tweakCount > 0 ? '#e03030' : undefined}}>{tweakCount} / {extraTweaks.length}</span>
-          </div>
-          <div className="psb-stat-row">
-            <span className="psb-stat-label">Full optimized</span>
-            <span className="psb-stat-val" style={{color: activePlan === 'lctron' && tweakCount === extraTweaks.length ? '#22c55e' : '#555'}}>
-              {activePlan === 'lctron' && tweakCount === extraTweaks.length ? 'Yes' : 'No'}
-            </span>
-          </div>
-        </div>
+        {(() => {
+          const C = 2 * Math.PI * 22;
+          const tweakPct = extraTweaks.length > 0 ? Math.round((tweakCount / extraTweaks.length) * 100) : 0;
+          const planColor = activePlan === 'lctron' ? '#e03030' : activePlan === 'high-performance' ? '#f59e0b' : '#22c55e';
+          const planDot   = activePlan === 'lctron' ? 'red'    : activePlan === 'high-performance' ? 'amber'   : 'green';
+          const ringColor = tweakPct === 0 ? '#444' : tweakPct < 50 ? '#f59e0b' : tweakPct < 100 ? '#22c55e' : '#e03030';
+          const planMetrics = [
+            { label: 'Lctron Ultimate', pct: 100, color: '#e03030' },
+            { label: 'High Performance', pct: 65, color: '#f59e0b' },
+            { label: 'Balanced', pct: 30, color: '#22c55e' },
+          ];
+          return (<>
+            {/* Active Plan Card */}
+            <motion.div className="psb-card" style={{ borderColor: `${planColor}33` }}
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              <div className="psb-title"><BatteryCharging size={11} /> Active Plan</div>
+              <div className="psb-ring-wrap">
+                <div className="psb-ring">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
+                      strokeLinecap="round" strokeDasharray={C}
+                      strokeDashoffset={C * (1 - tweakPct / 100)}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                  </svg>
+                  <span className="psb-ring-text" style={{ color: ringColor }}>{tweakPct}%</span>
+                </div>
+                <div className="psb-ring-info">
+                  <div className="psb-status-row" style={{ marginBottom: 4 }}>
+                    <div className={`psb-dot ${planDot}`} />
+                    <span className="psb-status-label" style={{ fontSize: 11 }}>{activePlanObj?.name || 'Detecting...'}</span>
+                  </div>
+                  <div className="psb-ring-sub">{tweakCount}/{extraTweaks.length} tweaks on</div>
+                </div>
+              </div>
+              <div className="psb-stat-grid">
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: planColor }}>{activePlanObj?.name?.split(' ')[0] || '—'}</div>
+                  <div className="psb-stat-cell-label">Plan</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: tweakCount > 0 ? '#e03030' : undefined }}>{tweakCount}</div>
+                  <div className="psb-stat-cell-label">Tweaks On</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val">{extraTweaks.length}</div>
+                  <div className="psb-stat-cell-label">Available</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: activePlan === 'lctron' && tweakCount === extraTweaks.length ? '#22c55e' : '#555' }}>
+                    {activePlan === 'lctron' && tweakCount === extraTweaks.length ? '✓' : '—'}
+                  </div>
+                  <div className="psb-stat-cell-label">Max Perf</div>
+                </div>
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Cpu size={11} /> Plan Guide</div>
-          <div className="psb-status-row"><div className="psb-dot red" /><span className="psb-status-label" style={{fontSize:10.5}}>Lctron Ultimate</span></div>
-          <p className="psb-info-text" style={{marginBottom:8}}>Max clocks, zero throttle. Best for gaming desktops.</p>
-          <div className="psb-status-row"><div className="psb-dot amber" /><span className="psb-status-label" style={{fontSize:10.5}}>High Performance</span></div>
-          <p className="psb-info-text" style={{marginBottom:8}}>Good balance. Windows built-in, no extra tweaks needed.</p>
-          <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label" style={{fontSize:10.5}}>Balanced</span></div>
-          <p className="psb-info-text">Default Windows plan. Fine for general use &amp; laptops.</p>
-        </div>
+            {/* Plan Performance Comparison */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              <div className="psb-title"><Cpu size={11} /> Plan Performance</div>
+              {planMetrics.map(m => (
+                <div key={m.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{m.label}</span>
+                    <span className="psb-bar-val" style={{ color: m.color }}>{m.pct}%</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{ width: `${m.pct}%`, background: m.color }} />
+                  </div>
+                </div>
+              ))}
+              <div className="psb-divider" />
+              <div className="psb-tags">
+                <span className="psb-tag red">Max Clocks</span>
+                <span className="psb-tag amber">No Throttle</span>
+                <span className="psb-tag green">Low Latency</span>
+              </div>
+            </motion.div>
 
-        <div className="psb-card">
-          <div className="psb-title"><Lightbulb size={11} /> Tips</div>
-          <ul className="psb-tips">
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Use "Apply All" for one-click max performance</li>
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Lctron plan = higher power &amp; heat</li>
-            <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Avoid on laptops running on battery</li>
-            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Core Parking off = lower input latency</li>
-          </ul>
-        </div>
+            {/* Tips */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              <ul className="psb-tips">
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Apply All for one-click max performance</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Core Parking off = lower input latency</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Higher power = more heat generated</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Avoid Lctron plan on battery laptops</li>
+              </ul>
+            </motion.div>
+          </>);
+        })()}
       </aside>
       </div>{/* page-body */}
     </div>

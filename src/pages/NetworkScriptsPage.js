@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wifi, Play, CheckCircle, AlertTriangle, Info, RotateCcw, Crown, Lock } from 'lucide-react';
+import { Wifi, Play, CheckCircle, AlertTriangle, Info, RotateCcw, Crown, Lock, Zap, BarChart2, Lightbulb, Shield, Activity } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { usePremium } from '../context/PremiumContext';
 import './NetworkScriptsPage.css';
+import './PageSidebar.css';
 
 const PREMIUM_SCRIPT_IDS = new Set(['optimize-nic', 'optimize-gaming-network', 'optimize-bufferbloat', 'optimize-wifi-adapter']);
 
@@ -90,10 +91,14 @@ export default function NetworkScriptsPage({ addToast, setActivePage }) {
     setDone(prev => { const n = { ...prev }; delete n[id]; return n; });
   };
 
+  const appliedCount = scripts.filter(s => done[s.id]).length;
+
   return (
     <div className="netscripts-page">
       <PageHeader icon={Wifi} title="Network Scripts" subtitle="One-click network optimization scripts for gaming and performance" iconColor="#e03030" />
 
+      <div className="page-body">
+      <div className="page-main">
       <div className="netscripts-scroll">
         <div className="netscripts-info-bar">
           <Info size={13} style={{ color: '#888', flexShrink: 0 }} />
@@ -178,6 +183,119 @@ export default function NetworkScriptsPage({ addToast, setActivePage }) {
           })}
         </div>
       </div>
+      </div>{/* page-main */}
+
+      <aside className="page-sidebar">
+        {(() => {
+          const C = 2 * Math.PI * 22;
+          const applyPct = Math.round((appliedCount / scripts.length) * 100);
+          const ringColor = applyPct === 0 ? '#444' : applyPct < 50 ? '#f59e0b' : applyPct < 100 ? '#22c55e' : '#06b6d4';
+          const ringLabel = applyPct === 0 ? 'Not Applied' : applyPct < 50 ? 'Partial' : applyPct < 100 ? 'Mostly Applied' : 'Fully Applied';
+          const networkImpact = [
+            { label: 'Ping Reduction', pct: appliedCount > 0 ? Math.min(100, appliedCount * 18) : 0, color: '#22c55e' },
+            { label: 'Bufferbloat Fix', pct: done['optimize-bufferbloat'] ? 85 : 0, color: '#06b6d4' },
+            { label: 'NIC Optimization', pct: done['optimize-nic'] ? 100 : 0, color: '#e03030' },
+            { label: 'DNS Speed', pct: done['flush-dns'] ? 70 : 0, color: '#f59e0b' },
+          ];
+          return (<>
+            {/* Applied ring */}
+            <motion.div className="psb-card psb-accent-red"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+              <div className="psb-title"><BarChart2 size={11} /> Scripts Applied</div>
+              <div className="psb-ring-wrap">
+                <div className="psb-ring">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+                    <circle cx="26" cy="26" r="22" fill="none" stroke={ringColor} strokeWidth="4"
+                      strokeLinecap="round" strokeDasharray={C}
+                      strokeDashoffset={C * (1 - applyPct / 100)}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '26px 26px', transition: 'stroke-dashoffset 0.6s ease' }} />
+                  </svg>
+                  <span className="psb-ring-text" style={{ color: ringColor }}>{applyPct}%</span>
+                </div>
+                <div className="psb-ring-info">
+                  <div className="psb-ring-label" style={{ color: ringColor }}>{ringLabel}</div>
+                  <div className="psb-ring-sub">{appliedCount} of {scripts.length} scripts</div>
+                </div>
+              </div>
+              <div className="psb-stat-grid">
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: '#22c55e' }}>{appliedCount}</div>
+                  <div className="psb-stat-cell-label">Applied</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val">{scripts.length - appliedCount}</div>
+                  <div className="psb-stat-cell-label">Remaining</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val" style={{ color: running ? '#f59e0b' : '#555' }}>{running ? 'Run' : 'Idle'}</div>
+                  <div className="psb-stat-cell-label">Status</div>
+                </div>
+                <div className="psb-stat-cell">
+                  <div className="psb-stat-cell-val">{scripts.length}</div>
+                  <div className="psb-stat-cell-label">Total</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Network impact bars */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              <div className="psb-title"><Activity size={11} /> Network Impact</div>
+              {networkImpact.map(m => (
+                <div key={m.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{m.label}</span>
+                    <span className="psb-bar-val" style={{ color: m.pct > 0 ? m.color : undefined }}>{m.pct > 0 ? `${m.pct}%` : '—'}</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{ width: `${m.pct}%`, background: m.color }} />
+                  </div>
+                </div>
+              ))}
+              <div className="psb-divider" />
+              <div className="psb-tags">
+                <span className="psb-tag green">Low Ping</span>
+                <span className="psb-tag blue">Anti-Bloat</span>
+                <span className="psb-tag red">NIC Opt</span>
+              </div>
+            </motion.div>
+
+            {/* Script status */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.11 }}>
+              <div className="psb-title"><Shield size={11} /> Script Status</div>
+              <div className="psb-timeline">
+                {scripts.map(s => (
+                  <div key={s.id} className="psb-tl-item">
+                    <div className="psb-tl-left">
+                      <div className="psb-tl-dot" style={{ borderColor: done[s.id] ? '#22c55e' : '#333', background: done[s.id] ? 'rgba(34,197,94,0.15)' : 'transparent' }} />
+                      <div className="psb-tl-line" />
+                    </div>
+                    <div className="psb-tl-body">
+                      <div className="psb-tl-title">{s.title.replace('Optimize ', '').replace(' Settings', '')}</div>
+                      <div className="psb-tl-sub">{done[s.id] ? 'Applied' : running === s.id ? 'Running...' : 'Pending'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Tips */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              <ul className="psb-tips">
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Run scripts top-to-bottom for best results</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Flush DNS after NIC optimization</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Bufferbloat fix may reduce raw speed</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Reset Stack undoes all network tweaks</li>
+              </ul>
+            </motion.div>
+          </>);
+        })()}
+      </aside>
+      </div>{/* page-body */}
     </div>
   );
 }
