@@ -1,0 +1,222 @@
+.process-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  padding: 0 24px 16px;
+}
+
+.process-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+}
+
+.process-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.process-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.process-stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.process-search-wrap {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--text-muted);
+}
+
+.process-search {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  width: 150px;
+}
+
+.process-refresh-btn {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.process-refresh-btn:hover { border-color: #06b6d4; color: #06b6d4; }
+
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.process-table-wrap {
+  flex: 1;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.process-table-head {
+  display: grid;
+  grid-template-columns: 1fr 80px 90px 130px 50px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.process-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.process-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 90px 130px 50px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(var(--accent-rgb),0.03);
+  align-items: center;
+  transition: background 0.1s;
+}
+
+.process-row:hover { background: rgba(var(--accent-rgb),0.02); }
+
+.process-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.process-pid {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'Consolas', monospace;
+}
+
+.process-cpu {
+  font-size: 11px;
+  color: #f87171;
+  font-family: 'Consolas', monospace;
+}
+
+.process-ram {
+  font-size: 11px;
+  color: #a78bfa;
+  font-family: 'Consolas', monospace;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ram-bar-wrap {
+  width: 50px;
+  height: 4px;
+  background: rgba(167,139,250,0.15);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ram-bar {
+  height: 100%;
+  background: #a78bfa;
+  border-radius: 2px;
+  display: block;
+  transition: width 0.3s ease;
+}
+
+.process-kill-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #444;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.process-kill-btn:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb),0.1);
+  border-color: rgba(var(--accent-rgb),0.3);
+  color: var(--red-primary);
+}
+
+.process-kill-btn:disabled { opacity: 0.4; cursor: wait; }
+
+.process-kill-spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--red-primary);
+  animation: spin 0.6s linear infinite;
+}
+
+.process-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.process-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #2a2a2a;
+  border-top-color: #06b6d4;
+  animation: spin 0.7s linear infinite;
+}
+
+.process-auto-refresh {
+  font-size: 10px;
+  color: #333;
+  text-align: right;
+  margin-top: 6px;
+  flex-shrink: 0;
+}

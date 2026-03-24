@@ -1,0 +1,242 @@
+.registry-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+}
+
+.registry-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.registry-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.registry-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #a855f7;
+  margin-bottom: 14px;
+}
+
+.registry-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.registry-preset-btn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: #c084fc;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.registry-preset-btn:hover {
+  background: rgba(var(--accent-rgb), 0.18);
+  border-color: rgba(var(--accent-rgb), 0.5);
+  color: #e9d5ff;
+}
+
+.registry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.registry-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.registry-row label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 52px;
+  flex-shrink: 0;
+}
+
+.registry-input,
+.registry-select {
+  flex: 1;
+  background: #111;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 12px;
+  padding: 7px 10px;
+  outline: none;
+  font-family: 'Consolas', 'Courier New', monospace;
+  transition: border-color 0.15s;
+}
+
+.registry-input:focus,
+.registry-select:focus {
+  border-color: rgba(var(--accent-rgb), 0.5);
+}
+
+.registry-select option {
+  background: #111;
+}
+
+.registry-preview {
+  background: #0a0a0a;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.registry-preview-label {
+  color: #555;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.registry-preview code {
+  color: #a855f7;
+  font-family: 'Consolas', 'Courier New', monospace;
+  word-break: break-all;
+}
+
+.registry-apply-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  align-self: flex-start;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgba(var(--accent-rgb), 0.15);
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  color: #c084fc;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 4px;
+}
+
+.registry-apply-btn:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb), 0.25);
+  border-color: rgba(var(--accent-rgb), 0.6);
+  color: #e9d5ff;
+}
+
+.registry-apply-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.registry-spinner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #c084fc;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.registry-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.registry-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #0d0d0d;
+  border: 1px solid #1e1e1e;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.registry-entry-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.registry-entry-path {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: 'Consolas', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.registry-entry-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.registry-entry-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.registry-entry-type {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  color: #a855f7;
+  font-weight: 600;
+}
+
+.registry-entry-value {
+  font-size: 11px;
+  color: #4ade80;
+  font-family: 'Consolas', monospace;
+}
+
+.registry-delete-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid #2a2a2a;
+  background: transparent;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.registry-delete-btn:hover {
+  background: rgba(var(--accent-rgb), 0.1);
+  border-color: rgba(var(--accent-rgb), 0.3);
+  color: var(--red-primary);
+}

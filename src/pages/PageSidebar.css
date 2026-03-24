@@ -1,0 +1,115 @@
+/* ── Shared two-column page layout ─────────────────────────────── */
+.page-body {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  align-items: flex-start;
+  min-height: 0;
+}
+
+.page-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────── */
+.page-sidebar {
+  width: 214px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.psb-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 14px;
+}
+
+.psb-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 11px;
+}
+
+.psb-stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
+}
+.psb-stat-row:last-child { margin-bottom: 0; }
+
+.psb-stat-label { font-size: 11px; color: var(--text-muted); }
+.psb-stat-val   { font-size: 11px; font-weight: 700; color: var(--text-primary); }
+
+.psb-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 9px 0;
+}
+
+.psb-tips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.psb-tips li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.psb-info-text {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.psb-info-text + .psb-info-text { margin-top: 7px; }
+.psb-info-text strong { color: var(--text-primary); font-weight: 700; }
+
+.psb-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.psb-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.psb-dot.green { background: #22c55e; box-shadow: 0 0 5px rgba(var(--accent-rgb),0.55); }
+.psb-dot.red   { background: #e03030; box-shadow: 0 0 5px rgba(var(--accent-rgb),0.55); }
+.psb-dot.amber { background: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,0.55); }
+.psb-dot.blue  { background: #06b6d4; box-shadow: 0 0 5px rgba(6,182,212,0.55); }
+.psb-dot.purple{ background: #a78bfa; box-shadow: 0 0 5px rgba(167,139,250,0.55); }
+
+.psb-status-label { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+
+.psb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}

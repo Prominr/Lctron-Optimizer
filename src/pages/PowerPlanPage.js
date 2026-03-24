@@ -1,0 +1,331 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BatteryCharging, Zap, CheckCircle, AlertTriangle, RefreshCw, Lightbulb, Info, Cpu } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import './PowerPlanPage.css';
+import './PageSidebar.css';
+
+const plans = [
+  {
+    id: 'lctron',
+    name: 'Lctron Ultimate',
+    tag: 'RECOMMENDED',
+    tagColor: '#e03030',
+    description: 'A custom power plan built specifically for maximum gaming and system performance. Disables all CPU throttling, forces max clock speeds, removes power limits, and eliminates latency-causing idle states.',
+    settings: [
+      'CPU always at maximum frequency',
+      'All CPU C-States disabled (no idle throttle)',
+      'PCI Express ASPM disabled',
+      'USB selective suspend off',
+      'Hard disk sleep never',
+      'Processor boost mode: Aggressive',
+      'No minimum performance floor',
+      'Display sleep: Never',
+      'Max processor state: 100%',
+      'Min processor state: 100%',
+    ],
+  },
+  {
+    id: 'high-performance',
+    name: 'High Performance',
+    tag: 'WINDOWS BUILT-IN',
+    tagColor: '#888',
+    description: 'Windows built-in high performance plan. Keeps CPU running fast but still allows some power saving features. Good baseline for gaming.',
+    settings: [
+      'CPU at high frequency',
+      'Minimal power saving',
+      'No display auto-sleep',
+      'Fast startup enabled',
+    ],
+  },
+  {
+    id: 'balanced',
+    name: 'Balanced',
+    tag: 'DEFAULT',
+    tagColor: '#555',
+    description: 'Windows default balanced power plan. Suitable for general use but not optimal for gaming or low latency.',
+    settings: [
+      'CPU scales with demand',
+      'Power saving features enabled',
+      'Display sleep after 10 min',
+    ],
+  },
+];
+
+const extraTweaks = [
+  { id: 'pp-disable-throttle', label: 'Disable CPU Throttling', desc: 'Prevents Windows from throttling CPU under thermal pressure (sets 100% min/max processor state)' },
+  { id: 'pp-disable-cores-parking', label: 'Disable Core Parking', desc: 'Keeps all CPU cores active and prevents them from being parked to save power' },
+  { id: 'pp-disable-usb-suspend', label: 'Disable USB Suspend', desc: 'Prevents USB devices from being suspended, eliminating input device latency spikes' },
+  { id: 'pp-disable-pcie-aspm', label: 'Disable PCIe ASPM', desc: 'Disables PCIe Active State Power Management for lower GPU/NVMe latency' },
+  { id: 'pp-disable-sleep', label: 'Disable Sleep & Hibernate', desc: 'Prevents system from sleeping or hibernating for always-ready performance' },
+  { id: 'pp-boost-mode', label: 'Aggressive CPU Boost', desc: 'Sets CPU boost mode to Aggressive for maximum single-core turbo performance' },
+];
+
+export default function PowerPlanPage({ addToast }) {
+  const [activePlan, setActivePlan] = useState(null);
+  const [applying, setApplying] = useState(null);
+  const [tweakStates, setTweakStates] = useState({});
+  const [applyingTweak, setApplyingTweak] = useState(null);
+
+  useEffect(() => {
+    detectActivePlan();
+  }, []);
+
+  const detectActivePlan = async () => {
+    if (window.electronAPI) {
+      const result = await window.electronAPI.applyTweak('pp-detect', true).catch(() => null);
+      if (result?.success) setActivePlan(result.planId || null);
+    }
+  };
+
+  const applyPlan = async (planId) => {
+    setApplying(planId);
+    try {
+      if (window.electronAPI) {
+        const result = await window.electronAPI.applyTweak(`pp-apply-${planId}`, true);
+        if (result.success) {
+          setActivePlan(planId);
+          addToast(`Power plan applied: ${plans.find(p => p.id === planId)?.name}`, 'success');
+        } else {
+          addToast(`Failed: ${result.error}`, 'error');
+        }
+      } else {
+        await new Promise(r => setTimeout(r, 900));
+        setActivePlan(planId);
+        addToast(`Power plan applied (dev mode)`, 'success');
+      }
+    } catch (e) {
+      addToast(`Error: ${e.message}`, 'error');
+    }
+    setApplying(null);
+  };
+
+  const toggleTweak = async (id) => {
+    const current = tweakStates[id] ?? false;
+    const next = !current;
+    setApplyingTweak(id);
+    try {
+      if (window.electronAPI) {
+        const result = await window.electronAPI.applyTweak(id, next);
+        if (result.success) {
+          setTweakStates(prev => ({ ...prev, [id]: next }));
+          addToast(`${next ? 'Applied' : 'Reverted'}: ${extraTweaks.find(t => t.id === id)?.label}`, 'success');
+        } else {
+          addToast(`Failed: ${result.error}`, 'error');
+        }
+      } else {
+        await new Promise(r => setTimeout(r, 700));
+        setTweakStates(prev => ({ ...prev, [id]: next }));
+        addToast(`Tweak ${next ? 'applied' : 'reverted'} (dev mode)`, 'success');
+      }
+    } catch (e) {
+      addToast(`Error: ${e.message}`, 'error');
+    }
+    setApplyingTweak(null);
+  };
+
+  const applyAll = async () => {
+    await applyPlan('lctron');
+    for (const t of extraTweaks) {
+      if (!tweakStates[t.id]) {
+        setApplyingTweak(t.id);
+        if (window.electronAPI) {
+          const result = await window.electronAPI.applyTweak(t.id, true).catch(() => ({ success: false }));
+          if (result.success) setTweakStates(prev => ({ ...prev, [t.id]: true }));
+        } else {
+          await new Promise(r => setTimeout(r, 300));
+          setTweakStates(prev => ({ ...prev, [t.id]: true }));
+        }
+        setApplyingTweak(null);
+      }
+    }
+    addToast('All power optimizations applied!', 'success');
+  };
+
+  const activePlanObj = plans.find(p => p.id === activePlan);
+  const tweakCount = Object.values(tweakStates).filter(Boolean).length;
+
+  return (
+    <div className="powerplan-page">
+      <PageHeader icon={BatteryCharging} title="Power Plan" subtitle="Configure system power settings for maximum performance" iconColor="#e03030" />
+
+      {/* Apply All Banner */}
+      <motion.div
+        className="pp-banner"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="pp-banner-left">
+          <Zap size={18} style={{ color: '#e03030' }} />
+          <div>
+            <div className="pp-banner-title">Apply Full Optimization</div>
+            <div className="pp-banner-sub">Set Lctron Ultimate plan + all performance tweaks at once</div>
+          </div>
+        </div>
+        <motion.button
+          className="pp-apply-all-btn"
+          onClick={applyAll}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <Zap size={14} />
+          Apply All
+        </motion.button>
+      </motion.div>
+
+      <div className="page-body" style={{alignItems:'flex-start'}}>
+      <div className="page-main" style={{minWidth:0}}>
+      <div className="pp-scroll">
+        {/* Plan Selector */}
+        <section className="pp-section">
+          <h2 className="pp-section-label">Select Power Plan</h2>
+          <div className="pp-plans">
+            {plans.map((plan, i) => {
+              const isActive = activePlan === plan.id;
+              const isApplying = applying === plan.id;
+              return (
+                <motion.div
+                  key={plan.id}
+                  className={`pp-plan-card ${isActive ? 'active' : ''}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  whileHover={{ y: -2 }}
+                >
+                  <div className="pp-plan-top">
+                    <div className="pp-plan-name-row">
+                      <div className={`pp-plan-dot ${isActive ? 'on' : ''}`} />
+                      <span className="pp-plan-name">{plan.name}</span>
+                    </div>
+                    <span className="pp-plan-tag" style={{ color: plan.tagColor, borderColor: plan.tagColor + '44', background: plan.tagColor + '11' }}>
+                      {plan.tag}
+                    </span>
+                  </div>
+                  <p className="pp-plan-desc">{plan.description}</p>
+                  <ul className="pp-plan-settings">
+                    {plan.settings.map(s => (
+                      <li key={s}>
+                        <CheckCircle size={11} style={{ color: '#4ade80', flexShrink: 0 }} />
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <motion.button
+                    className={`pp-plan-btn ${isActive ? 'active' : ''} ${isApplying ? 'loading' : ''}`}
+                    onClick={() => !isApplying && !isActive && applyPlan(plan.id)}
+                    disabled={isApplying || isActive}
+                    whileHover={!isActive ? { scale: 1.02 } : {}}
+                    whileTap={!isActive ? { scale: 0.97 } : {}}
+                  >
+                    {isApplying ? (
+                      <><div className="pp-spinner" /> Applying...</>
+                    ) : isActive ? (
+                      <><CheckCircle size={14} /> Active</>
+                    ) : (
+                      <><Zap size={14} /> Apply Plan</>
+                    )}
+                  </motion.button>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Extra Tweaks */}
+        <section className="pp-section">
+          <h2 className="pp-section-label">Performance Tweaks</h2>
+          <div className="pp-tweaks-list">
+            {extraTweaks.map((tweak, i) => {
+              const isOn = tweakStates[tweak.id] ?? false;
+              const isApplying = applyingTweak === tweak.id;
+              return (
+                <motion.div
+                  key={tweak.id}
+                  className={`pp-tweak-row ${isOn ? 'on' : ''}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + i * 0.04 }}
+                >
+                  <div className="pp-tweak-icon">
+                    <BatteryCharging size={14} style={{ color: isOn ? '#e03030' : 'var(--text-muted)' }} />
+                  </div>
+                  <div className="pp-tweak-body">
+                    <span className="pp-tweak-label">{tweak.label}</span>
+                    <span className="pp-tweak-desc">{tweak.desc}</span>
+                  </div>
+                  <button
+                    className={`toggle-switch ${isOn ? 'on' : 'off'} ${isApplying ? 'loading' : ''}`}
+                    onClick={() => !isApplying && toggleTweak(tweak.id)}
+                    disabled={isApplying}
+                  >
+                    <motion.div
+                      className="toggle-thumb"
+                      animate={{ x: isOn ? 20 : 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                    {isApplying && <div className="toggle-spinner" />}
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Warning */}
+        <motion.div
+          className="pp-warning-card"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <AlertTriangle size={14} style={{ color: '#f59e0b', flexShrink: 0 }} />
+          <p>The Lctron Ultimate plan and tweaks increase power consumption and heat output. Ensure your CPU cooling is adequate. Not recommended for laptops on battery.</p>
+        </motion.div>
+      </div>
+      </div>{/* page-main */}
+
+      <aside className="page-sidebar">
+        <div className="psb-card">
+          <div className="psb-title"><BatteryCharging size={11} /> Active Plan</div>
+          <div className="psb-status-row">
+            <div className={`psb-dot ${activePlan === 'lctron' ? 'red' : activePlan === 'high-performance' ? 'amber' : 'green'}`} />
+            <span className="psb-status-label" style={{fontSize:11}}>{activePlanObj?.name || 'Detecting...'}</span>
+          </div>
+          <div className="psb-divider" />
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Tweaks on</span>
+            <span className="psb-stat-val" style={{color: tweakCount > 0 ? '#e03030' : undefined}}>{tweakCount} / {extraTweaks.length}</span>
+          </div>
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Full optimized</span>
+            <span className="psb-stat-val" style={{color: activePlan === 'lctron' && tweakCount === extraTweaks.length ? '#22c55e' : '#555'}}>
+              {activePlan === 'lctron' && tweakCount === extraTweaks.length ? 'Yes' : 'No'}
+            </span>
+          </div>
+        </div>
+
+        <div className="psb-card">
+          <div className="psb-title"><Cpu size={11} /> Plan Guide</div>
+          <div className="psb-status-row"><div className="psb-dot red" /><span className="psb-status-label" style={{fontSize:10.5}}>Lctron Ultimate</span></div>
+          <p className="psb-info-text" style={{marginBottom:8}}>Max clocks, zero throttle. Best for gaming desktops.</p>
+          <div className="psb-status-row"><div className="psb-dot amber" /><span className="psb-status-label" style={{fontSize:10.5}}>High Performance</span></div>
+          <p className="psb-info-text" style={{marginBottom:8}}>Good balance. Windows built-in, no extra tweaks needed.</p>
+          <div className="psb-status-row"><div className="psb-dot green" /><span className="psb-status-label" style={{fontSize:10.5}}>Balanced</span></div>
+          <p className="psb-info-text">Default Windows plan. Fine for general use &amp; laptops.</p>
+        </div>
+
+        <div className="psb-card">
+          <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+          <ul className="psb-tips">
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Use "Apply All" for one-click max performance</li>
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Lctron plan = higher power &amp; heat</li>
+            <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}} /> Avoid on laptops running on battery</li>
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Core Parking off = lower input latency</li>
+          </ul>
+        </div>
+      </aside>
+      </div>{/* page-body */}
+    </div>
+  );
+}

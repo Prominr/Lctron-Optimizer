@@ -1,0 +1,937 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Rocket, Plus, Trash2, Zap, Wifi, Cpu, Monitor, CheckCircle, Search, Gamepad2, RefreshCw, ChevronLeft, Settings, Target, Flame, Save, FolderOpen, BrainCircuit, Lightbulb, AlertTriangle, Crown, Lock, TrendingDown, Activity } from 'lucide-react';
+import { usePremium } from '../context/PremiumContext';
+import PageHeader from '../components/PageHeader';
+import './AppBoosterPage.css';
+import './PageSidebar.css';
+
+const STEAM_HDR = (id) => `https://cdn.cloudflare.steamstatic.com/steam/apps/${id}/header.jpg`;
+
+// Tweaks available to free (basic) users
+const BASIC_FREE_KEYS = new Set([
+  'disableCO','optimizeDSCP','optimizePriority','optimizeIO',
+  'optimizeScheduler','disablePowerThrottling','disableIdleTasks',
+  'clearRAM','trimWorkingSet',
+  'optimizeGpuDriver','enableHags',
+  'optimizeTcpIp','disableNagle','optimizeDns','setQosPriority',
+  'disableFullscreenOpt','disableGameBar','disableXboxServices','disableAnimations',
+  'gameMode','highPerfMode','disableBackgroundApps',
+  'optimizeAudio','disableAudioEnhancements',
+  'fixLagSpikes','antiMicrostutter','reducePingSpikes',
+]);
+
+const GAME_DB = [
+  { name: 'Fortnite',            exe: 'FortniteClient-Win64-Shipping.exe', path: 'C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe', logo: 'https://cdn2.unrealengine.com/fortnite-chapter-4-keyart-full-bleed-1920x1080-1920x1080-9b4611fcf587.jpg', emoji: '🎮', publisher: 'Epic Games' },
+  { name: 'Roblox',              exe: 'RobloxPlayerBeta.exe',              path: 'C:\\Users\\User\\AppData\\Local\\Roblox\\Versions\\RobloxPlayerBeta.exe',                                   logo: 'https://images.rbxcdn.com/91bcdef49b8cbeefd39c5bc3a628f0ec.png', emoji: '🧱', publisher: 'Roblox' },
+  { name: 'Minecraft',           exe: 'javaw.exe',                         path: 'C:\\Program Files (x86)\\Minecraft Launcher\\javaw.exe',                                                      logo: 'https://www.minecraft.net/content/dam/games/minecraft/logos/Logo_Merchandise_Transparent.png', emoji: '⛏️', publisher: 'Mojang' },
+  { name: 'Valorant',            exe: 'VALORANT-Win64-Shipping.exe',       path: 'C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe',                  logo: 'https://www.riotgames.com/darkroom/576/valorant-702x336:41b9b3db46c0e1d0da2963bd66b8a07d.jpg', emoji: '🔫', publisher: 'Riot Games' },
+  { name: 'League of Legends',   exe: 'League of Legends.exe',             path: 'C:\\Riot Games\\League of Legends\\Game\\League of Legends.exe',                                             logo: 'https://www.riotgames.com/darkroom/576/lol-702x336:df9c8e1840cf0dd6f5e8e0e64abdc2d9.jpg', emoji: '⚔️', publisher: 'Riot Games' },
+  { name: 'CS2',                 exe: 'cs2.exe',                           path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\\bin\\win64\\cs2.exe', logo: STEAM_HDR(730), emoji: '💣', publisher: 'Valve' },
+  { name: 'Apex Legends',        exe: 'r5apex.exe',                        path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Apex Legends\\r5apex.exe',                                logo: STEAM_HDR(1172470), emoji: '🏹', publisher: 'EA' },
+  { name: 'Overwatch 2',         exe: 'Overwatch.exe',                     path: 'C:\\Program Files (x86)\\Overwatch\\Overwatch.exe',                                                           logo: 'https://blz-contentstack-images.akamaized.net/v3/assets/blt9c12f249ac15c7ec/blt2dec521e3616d55a/Overwatch_Keyart_Horizontal.jpg', emoji: '🦸', publisher: 'Blizzard' },
+  { name: 'GTA V',               exe: 'GTA5.exe',                          path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Grand Theft Auto V\\GTA5.exe',                            logo: STEAM_HDR(271590), emoji: '🚗', publisher: 'Rockstar' },
+  { name: 'Cyberpunk 2077',      exe: 'Cyberpunk2077.exe',                 path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\Cyberpunk 2077\\bin\\x64\\Cyberpunk2077.exe',             logo: STEAM_HDR(1091500), emoji: '🤖', publisher: 'CD Projekt Red' },
+  { name: 'Elden Ring',          exe: 'eldenring.exe',                     path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\ELDEN RING\\Game\\eldenring.exe',                         logo: STEAM_HDR(1245620), emoji: '🗡️', publisher: 'FromSoftware' },
+  { name: 'Rocket League',       exe: 'RocketLeague.exe',                  path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\rocketleague\\Binaries\\Win64\\RocketLeague.exe',          logo: STEAM_HDR(252950), emoji: '🚀', publisher: 'Psyonix' },
+  { name: 'Dota 2',              exe: 'dota2.exe',                         path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\dota 2 beta\\game\\bin\\win64\\dota2.exe',                logo: STEAM_HDR(570), emoji: '⚔️', publisher: 'Valve' },
+  { name: 'PUBG',                exe: 'TslGame.exe',                       path: 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\PUBG\\TslGame\\Binaries\\Win64\\TslGame.exe',             logo: STEAM_HDR(578080), emoji: '🎯', publisher: 'Krafton' },
+  { name: 'Discord',             exe: 'Discord.exe',                       path: 'C:\\Users\\User\\AppData\\Local\\Discord\\app-1.0.9035\\Discord.exe',                                        logo: 'https://logo.clearbit.com/discord.com', emoji: '💬', publisher: 'Discord', isApp: true },
+  { name: 'Chrome',              exe: 'chrome.exe',                        path: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',                                                  logo: 'https://logo.clearbit.com/google.com', emoji: '🌐', publisher: 'Google', isApp: true },
+  { name: 'OBS Studio',          exe: 'obs64.exe',                         path: 'C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe',                                                        logo: 'https://logo.clearbit.com/obsproject.com', emoji: '📹', publisher: 'OBS Project', isApp: true },
+  { name: 'Spotify',             exe: 'Spotify.exe',                       path: 'C:\\Users\\User\\AppData\\Roaming\\Spotify\\Spotify.exe',                                                     logo: 'https://logo.clearbit.com/spotify.com', emoji: '🎵', publisher: 'Spotify', isApp: true },
+];
+
+const DEFAULT_BASIC = {
+  // Core (safe, auto-on)
+  disableCO: true, optimizeDSCP: true, optimizePriority: true, optimizeIO: true,
+  disablePowerThrottling: true, disableIdleTasks: true, optimizeScheduler: true,
+  // Memory
+  clearRAM: true, trimWorkingSet: true, disablePaging: false, largePages: false,
+  // CPU
+  disableHyperThreading: false, disableSmt: false, cpuAffinity: false, boostCpuClock: false,
+  // GPU
+  optimizeGpuDriver: true, enableHags: true, optimizeShaderCache: true, optimizeFramePacing: true,
+  gpuBoost: false, disableGpuTimeout: false, setGpuPowerMode: false,
+  disableGpuRecovery: false, setGpuPreemption: false, disableGpuScalling: false,
+  // Network
+  optimizeTcpIp: true, disableNagle: true, optimizeDns: true, setQosPriority: true,
+  optimizeTcpWindow: true, disableTcpAutoTuning: true, optimizeNetworkBuffer: true,
+  setDnsCache: true, disableLso: true, optimizeAckFrequency: true, optimizeTcpStack: true,
+  // Windows
+  disableFullscreenOpt: true, disableGameBar: true, disableXboxServices: true,
+  disableTelemetry: true, disableDiagnostics: true, disableCompatTelemetry: true,
+  disableAnimations: true, disableWindowsInk: true, disableFax: true, disableSmartCard: true,
+  disableDefender: false, disableSysMain: false, disableSearchIndexing: false,
+  disableWindowsUpdate: false, disableIndexing: false,
+  disableLocation: true, disableCamera: false, disableMicrophone: false,
+  disablePrintSpooler: false, disableBluetooth: false, disableBiometrics: false,
+  // Advanced
+  optimizeInterrupts: true, setTimerResolution: true, disableHpet: false, disableCStates: false,
+  // Storage
+  optimizeSsd: true, trimDisks: true, disableWriteCache: false,
+  // Display
+  disableVsync: false, setRefreshRate: false,
+  // Audio
+  optimizeAudio: true, disableAudioEnhancements: true,
+  // Registry
+  optimizeRegistry: true, disablePrefetch: true,
+  // Game
+  gameMode: true, highPerfMode: true, disableBackgroundApps: true,
+  // System advanced
+  optimizeBootPerformance: true, disableStartupDelay: true, optimizeKernelMode: true,
+  disableSystemRestore: false, disableFileHistory: false, disableDefenderCloud: false,
+  // Roblox
+  robloxGpuBoost: false, robloxNetworkOpt: false, robloxCpuBoost: false,
+  // Anti-Lag
+  fixLagSpikes: true, antiMicrostutter: true, reducePingSpikes: true,
+};
+const DEFAULT_CUSTOM = {
+  // Core performance
+  disableCO: true, optimizeDSCP: true, optimizePriority: true, optimizeIO: true,
+  // Memory optimizations
+  clearRAM: false, disablePaging: false, largePages: false, trimWorkingSet: false,
+  // CPU optimizations
+  disableHyperThreading: false, disableSmt: false, cpuAffinity: false, boostCpuClock: false,
+  // GPU optimizations
+  gpuBoost: false, disableGpuTimeout: false, optimizeGpuDriver: false, setGpuPowerMode: false,
+  // Network optimizations
+  optimizeTcpIp: false, disableNagle: false, optimizeDns: false, setQosPriority: false,
+  // System optimizations
+  disablePowerThrottling: false, disableIdleTasks: false, optimizeScheduler: false,
+  // Windows optimizations
+  disableFullscreenOpt: false, disableGameBar: false, disableXboxServices: false,
+  disableSearchIndexing: false, disableDefender: false, disableTelemetry: false,
+  disableSysMain: false, disableDiagnostics: false,
+  // Advanced optimizations
+  disableHpet: false, disableCStates: false, optimizeInterrupts: false, setTimerResolution: false,
+  // Storage optimizations
+  optimizeSsd: false, disableWriteCache: false, trimDisks: false,
+  // Display optimizations
+  disableVsync: false, setRefreshRate: false, disableAnimations: false,
+  // Audio optimizations
+  optimizeAudio: false, disableAudioEnhancements: false,
+  // Registry optimizations
+  optimizeRegistry: false, disablePrefetch: false, optimizeTcpStack: false,
+  // Roblox specific optimizations
+  robloxGpuBoost: false, robloxNetworkOpt: false, robloxCpuBoost: false,
+  // Anti-Lag
+  fixLagSpikes: false, antiMicrostutter: false, reducePingSpikes: false,
+  // Game specific optimizations
+  gameMode: false, highPerfMode: false, disableBackgroundApps: false,
+  // Additional system optimizations
+  disableWindowsUpdate: false, disableIndexing: false, disableCompatTelemetry: false,
+  disableLocation: false, disableCamera: false, disableMicrophone: false,
+  disablePrintSpooler: false, disableFax: false, disableBluetooth: false,
+  disableSmartCard: false, disableBiometrics: false, disableWindowsInk: false,
+  // Network advanced optimizations
+  optimizeTcpWindow: false, disableTcpAutoTuning: false, optimizeNetworkBuffer: false,
+  setDnsCache: false, disableLso: false, optimizeAckFrequency: false,
+  // Graphics advanced optimizations
+  enableHags: false, optimizeShaderCache: false, disableGpuRecovery: false,
+  setGpuPreemption: false, optimizeFramePacing: false, disableGpuScalling: false,
+  // System advanced optimizations
+  disableSystemRestore: false, disableFileHistory: false, disableDefenderCloud: false,
+  optimizeBootPerformance: false, disableStartupDelay: false, optimizeKernelMode: false,
+};
+
+function GameArt({ logo, emoji, name, size = 'card' }) {
+  const [failed, setFailed] = React.useState(false);
+  if (logo && !failed) {
+    return (
+      <img
+        src={logo}
+        alt={name}
+        className={`game-art-img game-art-${size}`}
+        onError={() => setFailed(true)}
+        draggable={false}
+      />
+    );
+  }
+  return <div className={`game-art-fallback game-art-${size}`}>{emoji || '⚡'}</div>;
+}
+
+function LockedRow({ label, desc, tag }) {
+  return (
+    <div className="ab-row ab-row-locked">
+      <div className="ab-row-info">
+        <span className="ab-row-label">{label}</span>
+        {tag && <span className="ab-pro-tag"><Crown size={8} /> PRO</span>}
+        {desc && <span className="ab-row-desc">{desc}</span>}
+      </div>
+      <div className="ab-lock-icon"><Lock size={12} /></div>
+    </div>
+  );
+}
+
+function Toggle({ checked, onChange }) {
+  return (
+    <button className={`ab-toggle ${checked ? 'on' : 'off'}`} onClick={() => onChange(!checked)}>
+      <span className="ab-toggle-thumb" />
+    </button>
+  );
+}
+
+function BoostRow({ label, desc, checked, onChange, recommended, risky }) {
+  return (
+    <div className="ab-row ab-row-free">
+      <div className="ab-row-info">
+        <span className="ab-row-label">{label}</span>
+        {recommended && <span className="ab-recommended"><Gamepad2 size={9} /> Recommended</span>}
+        {risky && <span className="ab-risky"><AlertTriangle size={9} /> Use Caution</span>}
+        {desc && <span className="ab-row-desc">{desc}</span>}
+      </div>
+      <Toggle checked={checked} onChange={onChange} />
+    </div>
+  );
+}
+
+const BOOST_STAGES = [
+  { label: 'Elevating process priority', icon: Cpu },
+  { label: 'Optimizing GPU scheduling', icon: Monitor },
+  { label: 'Setting DSCP / QoS tags', icon: Wifi },
+  { label: 'Boosting I/O priority', icon: Zap },
+  { label: 'Disabling power throttle', icon: Flame },
+  { label: 'Clearing RAM & memory', icon: BrainCircuit },
+  { label: 'Applying CPU optimizations', icon: Settings },
+  { label: 'Fixing lag spikes & stutter', icon: Activity },
+  { label: 'Minimizing ping & latency', icon: TrendingDown },
+  { label: 'Maximizing FPS output', icon: Rocket },
+];
+
+export default function AppBoosterPage({ addToast }) {
+  const [apps, setApps] = useState([]);
+  const [selected, setSelected] = useState(null); // app id currently in config view
+  const [configTab, setConfigTab] = useState('basic'); // 'basic' | 'custom' | 'focus'
+  const [appConfigs, setAppConfigs] = useState({}); // per-app config overrides
+  const [boosting, setBoosting] = useState(null);
+  const [boostStage, setBoostStage] = useState(0);
+  const [boosted, setBoosted] = useState({});
+  const [detecting, setDetecting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [focusActive, setFocusActive] = useState({});
+  const [runningApps, setRunningApps] = useState(new Set());
+  const runCheckRef = useRef(null);
+
+  useEffect(() => {
+    const checkRunning = async () => {
+      if (!window.electronAPI?.getProcesses) return;
+      try {
+        const res = await window.electronAPI.getProcesses();
+        const procs = res.procs || [];
+        const procNames = new Set(procs.map(p => (p.Name || '').toLowerCase()));
+        setApps(current => {
+          const running = new Set();
+          for (const app of current) {
+            const exeName = (app.exe || app.path?.split('\\').pop() || '').toLowerCase();
+            if (exeName && procNames.has(exeName.replace('.exe', ''))) running.add(app.id);
+          }
+          setRunningApps(running);
+          return current;
+        });
+      } catch {}
+    };
+    checkRunning();
+    runCheckRef.current = setInterval(checkRunning, 3000);
+    return () => clearInterval(runCheckRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!window.electronAPI) return;
+    window.electronAPI.loadSettings().then(saved => {
+      if (saved?.appConfigs) setAppConfigs(saved.appConfigs);
+      if (saved?.boosterApps?.length > 0) {
+        setApps(saved.boosterApps);
+      }
+    }).catch(() => {});
+  }, []); // eslint-disable-line
+
+  const saveApps = useCallback(async (newApps, newConfigs) => {
+    if (!window.electronAPI) return;
+    const existing = await window.electronAPI.loadSettings().catch(() => ({}));
+    window.electronAPI.saveSettings({ ...existing, boosterApps: newApps, appConfigs: newConfigs ?? appConfigs });
+  }, [appConfigs]);
+
+  const addEntry = useCallback((entry) => {
+    setApps(prev => {
+      if (prev.find(a => a.path === entry.path)) return prev;
+      const newApps = [...prev, entry];
+      saveApps(newApps);
+      return newApps;
+    });
+  }, [saveApps]);
+
+  const handleAddApp = async () => {
+    if (window.electronAPI) {
+      const filePath = await window.electronAPI.browseExe();
+      if (filePath) {
+        const exeName = filePath.split('\\').pop();
+        const name = exeName.replace('.exe', '');
+        const known = GAME_DB.find(g => g.exe.toLowerCase() === exeName.toLowerCase());
+        addEntry({ path: filePath, exe: exeName, name: known?.name || name, emoji: known?.emoji || '⚡', logo: known?.logo || null, publisher: known?.publisher || '', isApp: known?.isApp || false, id: Date.now(), manuallyAdded: true });
+      }
+    } else {
+      addEntry({ path: `C:\\Games\\Game_${apps.length + 1}.exe`, name: `Game ${apps.length + 1}`, emoji: '🎮', publisher: 'Unknown', isApp: false, id: Date.now(), manuallyAdded: true });
+    }
+  };
+
+  const handleDetectReplace = async (showToast = false) => {
+    setDetecting(true);
+    try {
+      let detected = [];
+      if (window.electronAPI?.detectInstalledApps) {
+        detected = await window.electronAPI.detectInstalledApps();
+      }
+      const detectedApps = detected.map(g => ({
+        ...g,
+        logo: g.steamAppId ? STEAM_HDR(g.steamAppId) : null,
+        id: Date.now() + Math.random(),
+      }));
+      setApps(prev => {
+        const manualApps = prev.filter(a => a.manuallyAdded);
+        const merged = [...manualApps];
+        for (const app of detectedApps) {
+          if (!merged.find(a => a.path?.toLowerCase() === app.path?.toLowerCase())) {
+            merged.push(app);
+          }
+        }
+        saveApps(merged);
+        return merged;
+      });
+      if (showToast) {
+        addToast(detectedApps.length > 0 ? `Found ${detectedApps.length} installed program${detectedApps.length !== 1 ? 's' : ''}` : 'No installed programs found', detectedApps.length > 0 ? 'success' : 'info');
+      }
+    } catch (e) {
+      if (showToast) addToast('Detection failed', 'error');
+    }
+    setDetecting(false);
+  };
+
+  const handleDetect = () => handleDetectReplace(true);
+
+  const handleRemove = (id) => {
+    setApps(prev => {
+      const next = prev.filter(a => a.id !== id);
+      saveApps(next);
+      return next;
+    });
+    if (selected === id) setSelected(null);
+    setBoosted(prev => { const n = { ...prev }; delete n[id]; return n; });
+  };
+
+  const getConfig = (appId) => appConfigs[appId] || { basic: { ...DEFAULT_BASIC }, custom: { ...DEFAULT_CUSTOM } };
+
+  const updateConfig = (appId, tab, key, val) => {
+    setAppConfigs(prev => {
+      const cfg = { ...getConfig(appId) };
+      cfg[tab] = { ...cfg[tab], [key]: val };
+      const next = { ...prev, [appId]: cfg };
+      saveApps(apps, next);
+      return next;
+    });
+  };
+
+  const handleBoost = async (app, mode = 'basic') => {
+    setBoosting(app.id);
+    setBoostStage(0);
+    const cfg = getConfig(app.id);
+
+    try {
+      const stageAnim = (async () => {
+        for (let i = 0; i < BOOST_STAGES.length; i++) {
+          setBoostStage(i);
+          await new Promise(r => setTimeout(r, 350));
+        }
+      })();
+
+      let result;
+      if (window.electronAPI) {
+        if (mode === 'ultimate') {
+          result = await window.electronAPI.boostFocusMode(app.path);
+          const ultimateOpts = { ...cfg.basic, disableCO: true, optimizeDSCP: true, optimizePriority: true, optimizeIO: true, robloxGpuBoost: true, robloxNetworkOpt: true, robloxCpuBoost: true };
+          await window.electronAPI.boostAppAdvanced(app.path, ultimateOpts);
+          for (const tweakId of ['pro-gpu-hwsched', 'pro-timer-res', 'pro-disable-uwp-bg']) {
+            await window.electronAPI.applyTweak(tweakId, true).catch(() => {});
+          }
+          setFocusActive(prev => ({ ...prev, [app.id]: true }));
+        } else if (mode === 'focus') {
+          result = await window.electronAPI.boostFocusMode(app.path);
+          setFocusActive(prev => ({ ...prev, [app.id]: true }));
+        } else if (mode === 'custom') {
+          result = await window.electronAPI.boostAppAdvanced(app.path, cfg.custom);
+        } else {
+          result = await window.electronAPI.boostAppAdvanced(app.path, cfg.basic);
+        }
+      } else {
+        await new Promise(r => setTimeout(r, 1800));
+        result = { success: true, running: true };
+      }
+      await stageAnim;
+
+      if (result?.success) {
+        setBoosted(prev => ({ ...prev, [app.id]: mode }));
+        const msg = mode === 'ultimate'
+          ? `Ultimate Boost activated for ${app.name} — all Pro optimizations applied`
+          : mode === 'focus'
+            ? `Focus Mode activated for ${app.name} — background apps killed`
+            : result.running
+              ? `${app.name} boosted!`
+              : `${app.name} configured — launch to apply`;
+        addToast(msg, 'success');
+      } else {
+        addToast(`Boost failed: ${result?.error || 'Unknown error'}`, 'error');
+      }
+    } catch (e) {
+      addToast(`Error: ${e.message}`, 'error');
+    }
+    setBoosting(null);
+    setBoostStage(0);
+  };
+
+  const { isPremium } = usePremium();
+  const selectedApp = apps.find(a => a.id === selected);
+  const filteredApps = searchQuery
+    ? apps.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : apps;
+
+  if (selectedApp) {
+    const cfg = getConfig(selectedApp.id);
+    const isBoosting = boosting === selectedApp.id;
+    const boostedMode = boosted[selectedApp.id];
+
+    return (
+      <div className="booster-page">
+        <div className="ab-config-layout">
+          {/* Left panel */}
+          <div className="ab-config-left">
+            <div className="ab-config-art-wrap">
+              <GameArt logo={selectedApp.logo} emoji={selectedApp.emoji} name={selectedApp.name} size="detail" />
+              <div className="ab-config-art-overlay">
+                <span className="ab-config-art-name">{selectedApp.name}</span>
+                {selectedApp.publisher && <span className="ab-config-art-pub">{selectedApp.publisher}</span>}
+              </div>
+            </div>
+            <button className="ab-save-btn" onClick={() => {
+              saveApps(apps, appConfigs);
+              addToast('Configuration saved', 'success');
+            }}>
+              <Save size={13} /> Save Configuration
+            </button>
+            <button className="ab-delete-btn" onClick={() => handleRemove(selectedApp.id)}>
+              <Trash2 size={13} /> Delete Configuration
+            </button>
+            <button className="ab-back-btn" onClick={() => setSelected(null)}>
+              <ChevronLeft size={13} /> Back to Library
+            </button>
+          </div>
+
+          {/* Right panel */}
+          <div className="ab-config-right">
+            <div className="ab-config-field">
+              <label className="ab-field-label">Program Name</label>
+              <input className="ab-field-input" value={selectedApp.name} readOnly />
+            </div>
+            <div className="ab-config-field">
+              <label className="ab-field-label">Path to Program</label>
+              <div className="ab-path-row">
+                <input className="ab-field-input ab-path-input" value={selectedApp.path} readOnly />
+                <button className="ab-browse-btn" onClick={handleAddApp}><FolderOpen size={14} /></button>
+              </div>
+            </div>
+
+            <div className="ab-config-section-label">Booster Configuration</div>
+
+            {/* Tabs */}
+            <div className="ab-config-tabs">
+              <button className={`ab-config-tab ${configTab === 'basic' ? 'active' : ''}`} onClick={() => setConfigTab('basic')}>
+                <Settings size={12} /> Optimizations
+              </button>
+              <button className={`ab-config-tab ab-config-tab-focus ${configTab === 'focus' ? 'active' : ''}`} onClick={() => setConfigTab('focus')}>
+                <Target size={12} /> Focus Mode
+              </button>
+              <button className={`ab-config-tab ab-config-tab-ultimate ${configTab === 'ultimate' ? 'active' : ''}`} onClick={() => setConfigTab('ultimate')} style={{ color: '#a78bfa', borderColor: configTab === 'ultimate' ? '#a78bfa' : undefined }}>
+                <Crown size={12} /> Ultimate
+              </button>
+            </div>
+
+            {/* Tab content */}
+            <AnimatePresence mode="wait">
+              {configTab === 'basic' && (
+                <motion.div key="basic" className="ab-tab-body" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
+
+                  {/* Anti-Lag & FPS — always free */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title ab-section-highlight"><Activity size={9} style={{display:'inline',marginRight:5}} />Anti-Lag & FPS</div>
+                    <BoostRow label="Fix Lag Spikes" desc="Eliminates sudden FPS drops and frame time spikes" recommended checked={cfg.basic.fixLagSpikes} onChange={v => updateConfig(selectedApp.id, 'basic', 'fixLagSpikes', v)} />
+                    <BoostRow label="Anti Micro-Stutter" desc="Smooths out micro-stuttering during gameplay" recommended checked={cfg.basic.antiMicrostutter} onChange={v => updateConfig(selectedApp.id, 'basic', 'antiMicrostutter', v)} />
+                    <BoostRow label="Reduce Ping Spikes" desc="Stabilizes network for consistent low latency" recommended checked={cfg.basic.reducePingSpikes} onChange={v => updateConfig(selectedApp.id, 'basic', 'reducePingSpikes', v)} />
+                  </div>
+
+                  {/* Core Performance */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title">Core Performance</div>
+                    <BoostRow label="Disable CPU Throttle" recommended checked={cfg.basic.disableCO} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableCO', v)} />
+                    <BoostRow label="Optimize DSCP Settings" recommended checked={cfg.basic.optimizeDSCP} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeDSCP', v)} />
+                    <BoostRow label="Optimize Priority Class" recommended checked={cfg.basic.optimizePriority} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizePriority', v)} />
+                    <BoostRow label="Optimize I/O Priority" recommended checked={cfg.basic.optimizeIO} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeIO', v)} />
+                    <BoostRow label="Disable Power Throttling" desc="Prevents Windows from throttling CPU" checked={cfg.basic.disablePowerThrottling} onChange={v => updateConfig(selectedApp.id, 'basic', 'disablePowerThrottling', v)} />
+                    <BoostRow label="Disable Idle Tasks" desc="Prevents background idle tasks during gaming" checked={cfg.basic.disableIdleTasks} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableIdleTasks', v)} />
+                    <BoostRow label="Optimize Scheduler" desc="Optimize thread scheduling for performance" checked={cfg.basic.optimizeScheduler} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeScheduler', v)} />
+                  </div>
+
+                  {/* Memory */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title">Memory</div>
+                    <BoostRow label="Clear RAM on Start" desc="Trims standby memory before boost" checked={cfg.basic.clearRAM} onChange={v => updateConfig(selectedApp.id, 'basic', 'clearRAM', v)} />
+                    <BoostRow label="Trim Working Set" desc="Reduces process memory footprint" checked={cfg.basic.trimWorkingSet} onChange={v => updateConfig(selectedApp.id, 'basic', 'trimWorkingSet', v)} />
+                    {isPremium ? (
+                      <>
+                        <BoostRow label="Disable Paging" desc="Prevents memory paging to disk — 16GB+ RAM only" risky checked={cfg.basic.disablePaging} onChange={v => updateConfig(selectedApp.id, 'basic', 'disablePaging', v)} />
+                        <BoostRow label="Use Large Pages" desc="Enables large memory pages — requires special privileges" risky checked={cfg.basic.largePages} onChange={v => updateConfig(selectedApp.id, 'basic', 'largePages', v)} />
+                      </>
+                    ) : (
+                      <>
+                        <LockedRow label="Disable Paging" desc="Prevents RAM paging to disk for max speed" tag />
+                        <LockedRow label="Use Large Pages" desc="Large memory pages for max performance" tag />
+                      </>
+                    )}
+                  </div>
+
+                  {/* GPU */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title">GPU</div>
+                    <BoostRow label="Optimize GPU Driver" desc="Apply driver-level optimizations" checked={cfg.basic.optimizeGpuDriver} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeGpuDriver', v)} />
+                    <BoostRow label="Enable HAGS" desc="Hardware Accelerated GPU Scheduling" checked={cfg.basic.enableHags} onChange={v => updateConfig(selectedApp.id, 'basic', 'enableHags', v)} />
+                    {isPremium ? (
+                      <>
+                        <BoostRow label="Optimize Shader Cache" desc="Optimize GPU shader cache" checked={cfg.basic.optimizeShaderCache} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeShaderCache', v)} />
+                        <BoostRow label="Optimize Frame Pacing" desc="Smooth frame delivery for no micro-stutter" checked={cfg.basic.optimizeFramePacing} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeFramePacing', v)} />
+                        <BoostRow label="GPU Boost" desc="Maximize GPU performance settings" risky checked={cfg.basic.gpuBoost} onChange={v => updateConfig(selectedApp.id, 'basic', 'gpuBoost', v)} />
+                        <BoostRow label="Disable GPU Timeout" desc="Prevents GPU from timing out — may cause crashes" risky checked={cfg.basic.disableGpuTimeout} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableGpuTimeout', v)} />
+                        <BoostRow label="Set GPU Power Mode" desc="Force maximum GPU power state" risky checked={cfg.basic.setGpuPowerMode} onChange={v => updateConfig(selectedApp.id, 'basic', 'setGpuPowerMode', v)} />
+                        <BoostRow label="Disable GPU Recovery" desc="Disable GPU timeout recovery" risky checked={cfg.basic.disableGpuRecovery} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableGpuRecovery', v)} />
+                        <BoostRow label="Set GPU Preemption" desc="Optimize GPU preemption mode" checked={cfg.basic.setGpuPreemption} onChange={v => updateConfig(selectedApp.id, 'basic', 'setGpuPreemption', v)} />
+                      </>
+                    ) : (
+                      <>
+                        <LockedRow label="Shader Cache Optimization" desc="Maximize GPU shader performance" tag />
+                        <LockedRow label="Frame Pacing Control" desc="Smooth frame delivery for no micro-stutter" tag />
+                        <LockedRow label="GPU Power Mode & Boost" desc="Force GPU to max performance state" tag />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Network & Ping */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title">Network & Ping</div>
+                    <BoostRow label="Optimize TCP/IP" desc="Optimize TCP settings for gaming" checked={cfg.basic.optimizeTcpIp} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeTcpIp', v)} />
+                    <BoostRow label="Disable Nagle Algorithm" desc="Reduces network latency" checked={cfg.basic.disableNagle} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableNagle', v)} />
+                    <BoostRow label="Optimize DNS" desc="Use faster DNS servers" checked={cfg.basic.optimizeDns} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeDns', v)} />
+                    <BoostRow label="Set QoS Priority" desc="Prioritize app network traffic" checked={cfg.basic.setQosPriority} onChange={v => updateConfig(selectedApp.id, 'basic', 'setQosPriority', v)} />
+                    {isPremium ? (
+                      <>
+                        <BoostRow label="Optimize TCP Window" desc="Optimize TCP window size" checked={cfg.basic.optimizeTcpWindow} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeTcpWindow', v)} />
+                        <BoostRow label="Disable TCP Auto Tuning" checked={cfg.basic.disableTcpAutoTuning} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableTcpAutoTuning', v)} />
+                        <BoostRow label="Optimize Network Buffer" desc="Optimize network buffer sizes" checked={cfg.basic.optimizeNetworkBuffer} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeNetworkBuffer', v)} />
+                        <BoostRow label="Set DNS Cache" desc="Optimize DNS caching" checked={cfg.basic.setDnsCache} onChange={v => updateConfig(selectedApp.id, 'basic', 'setDnsCache', v)} />
+                        <BoostRow label="Disable LSO" desc="Disable Large Send Offload" checked={cfg.basic.disableLso} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableLso', v)} />
+                        <BoostRow label="Optimize ACK Frequency" desc="Optimize TCP ACK frequency" checked={cfg.basic.optimizeAckFrequency} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeAckFrequency', v)} />
+                        <BoostRow label="Optimize TCP Stack" desc="Optimize network stack settings" checked={cfg.basic.optimizeTcpStack} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeTcpStack', v)} />
+                      </>
+                    ) : (
+                      <>
+                        <LockedRow label="TCP Window Tuning" desc="Advanced TCP window for lower ping" tag />
+                        <LockedRow label="Network Buffer Optimization" desc="Optimize send/receive buffers" tag />
+                        <LockedRow label="ACK Frequency & LSO Control" desc="Low-level network stack tweaks" tag />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Windows */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title">Windows</div>
+                    <BoostRow label="Disable Fullscreen Optimizations" desc="Forces exclusive fullscreen mode" checked={cfg.basic.disableFullscreenOpt} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableFullscreenOpt', v)} />
+                    <BoostRow label="Disable Game Bar" desc="Disables Xbox Game Bar overlay" checked={cfg.basic.disableGameBar} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableGameBar', v)} />
+                    <BoostRow label="Disable Xbox Services" desc="Stops Xbox-related background services" checked={cfg.basic.disableXboxServices} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableXboxServices', v)} />
+                    <BoostRow label="Disable Animations" desc="Disable Windows UI animations" checked={cfg.basic.disableAnimations} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableAnimations', v)} />
+                    {isPremium && (
+                      <>
+                        <BoostRow label="Disable Telemetry" desc="Stops Windows data collection" checked={cfg.basic.disableTelemetry} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableTelemetry', v)} />
+                        <BoostRow label="Disable Diagnostics" desc="Stops Windows diagnostic services" checked={cfg.basic.disableDiagnostics} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableDiagnostics', v)} />
+                        <BoostRow label="Disable Compat Telemetry" checked={cfg.basic.disableCompatTelemetry} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableCompatTelemetry', v)} />
+                        <BoostRow label="Disable Search Indexing" desc="Stops Windows Search indexing while gaming" risky checked={cfg.basic.disableSearchIndexing} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableSearchIndexing', v)} />
+                        <BoostRow label="Disable SysMain" desc="Stops Superfetch/Prefetch service" risky checked={cfg.basic.disableSysMain} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableSysMain', v)} />
+                        <BoostRow label="Disable Defender" desc="Disables Windows Defender — reduces security" risky checked={cfg.basic.disableDefender} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableDefender', v)} />
+                        <BoostRow label="Disable Windows Update" desc="Stop Windows Update — re-enable after gaming" risky checked={cfg.basic.disableWindowsUpdate} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableWindowsUpdate', v)} />
+                        <BoostRow label="Disable Location" desc="Turn off location services" checked={cfg.basic.disableLocation} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableLocation', v)} />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Game Mode — always free */}
+                  <div className="ab-opt-section">
+                    <div className="ab-opt-section-title">Game Mode</div>
+                    <BoostRow label="Game Mode" desc="Enable Windows Game Mode" checked={cfg.basic.gameMode} onChange={v => updateConfig(selectedApp.id, 'basic', 'gameMode', v)} />
+                    <BoostRow label="High Performance Mode" desc="Set power plan to high performance" checked={cfg.basic.highPerfMode} onChange={v => updateConfig(selectedApp.id, 'basic', 'highPerfMode', v)} />
+                    <BoostRow label="Disable Background Apps" desc="Stop background applications" checked={cfg.basic.disableBackgroundApps} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableBackgroundApps', v)} />
+                    <BoostRow label="Optimize Audio" desc="Optimize audio settings for low latency" checked={cfg.basic.optimizeAudio} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeAudio', v)} />
+                    <BoostRow label="Disable Audio Enhancements" desc="Disable Windows audio effects" checked={cfg.basic.disableAudioEnhancements} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableAudioEnhancements', v)} />
+                  </div>
+
+                  {/* Pro-only advanced sections */}
+                  {isPremium ? (
+                    <>
+                      <div className="ab-opt-section">
+                        <div className="ab-opt-section-title">CPU Advanced</div>
+                        <BoostRow label="Disable Hyper-Threading" desc="May improve single-threaded games" risky checked={cfg.basic.disableHyperThreading} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableHyperThreading', v)} />
+                        <BoostRow label="Disable SMT" desc="Disable simultaneous multithreading" risky checked={cfg.basic.disableSmt} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableSmt', v)} />
+                        <BoostRow label="Set CPU Affinity" desc="Lock process to specific CPU cores" risky checked={cfg.basic.cpuAffinity} onChange={v => updateConfig(selectedApp.id, 'basic', 'cpuAffinity', v)} />
+                        <BoostRow label="Boost CPU Clock" desc="Increase CPU frequency if supported" risky checked={cfg.basic.boostCpuClock} onChange={v => updateConfig(selectedApp.id, 'basic', 'boostCpuClock', v)} />
+                      </div>
+                      <div className="ab-opt-section">
+                        <div className="ab-opt-section-title">System Advanced</div>
+                        <BoostRow label="Optimize Interrupts" desc="Optimize interrupt handling" checked={cfg.basic.optimizeInterrupts} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeInterrupts', v)} />
+                        <BoostRow label="Set Timer Resolution" desc="0.5ms platform timer for lowest input lag" checked={cfg.basic.setTimerResolution} onChange={v => updateConfig(selectedApp.id, 'basic', 'setTimerResolution', v)} />
+                        <BoostRow label="Disable HPET" desc="Disable High Precision Event Timer" risky checked={cfg.basic.disableHpet} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableHpet', v)} />
+                        <BoostRow label="Disable C-States" desc="Prevent CPU from entering low-power states" risky checked={cfg.basic.disableCStates} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableCStates', v)} />
+                        <BoostRow label="Optimize Registry" desc="Optimize Windows registry settings" checked={cfg.basic.optimizeRegistry} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeRegistry', v)} />
+                        <BoostRow label="Disable Prefetch" desc="Disable Windows prefetch (beneficial on SSDs)" checked={cfg.basic.disablePrefetch} onChange={v => updateConfig(selectedApp.id, 'basic', 'disablePrefetch', v)} />
+                        <BoostRow label="Optimize SSD" desc="Apply SSD-specific optimizations" checked={cfg.basic.optimizeSsd} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeSsd', v)} />
+                        <BoostRow label="Trim Disks" desc="Trim SSD drives for better performance" checked={cfg.basic.trimDisks} onChange={v => updateConfig(selectedApp.id, 'basic', 'trimDisks', v)} />
+                        <BoostRow label="Optimize Boot Performance" checked={cfg.basic.optimizeBootPerformance} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeBootPerformance', v)} />
+                        <BoostRow label="Disable Startup Delay" desc="Remove startup program delays" checked={cfg.basic.disableStartupDelay} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableStartupDelay', v)} />
+                        <BoostRow label="Disable System Restore" desc="Turn off system restore" risky checked={cfg.basic.disableSystemRestore} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableSystemRestore', v)} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="ab-pro-gate-section">
+                      <div className="ab-pro-gate-header">
+                        <Crown size={13} style={{ color: '#a78bfa', flexShrink: 0 }} />
+                        <span>Pro Optimizations — <strong>Upgrade to unlock</strong></span>
+                      </div>
+                      <LockedRow label="CPU Advanced Tuning" desc="Hyper-threading, SMT, affinity & clock boost" tag />
+                      <LockedRow label="Timer Resolution (0.5ms)" desc="Lowest possible input lag platform timer" tag />
+                      <LockedRow label="Interrupt Optimization" desc="MSI mode & DPC latency reduction" tag />
+                      <LockedRow label="Advanced Disk & Registry" desc="SSD trim, prefetch, registry tweaks" tag />
+                      <LockedRow label="C-States / HPET Control" desc="Aggressive CPU sleep state management" tag />
+                    </div>
+                  )}
+
+                  {/* Roblox-specific */}
+                  {selectedApp.name.toLowerCase().includes('roblox') && (
+                    <div className="ab-opt-section">
+                      <div className="ab-opt-section-title">Roblox Optimizations</div>
+                      <BoostRow label="Roblox GPU Boost" desc="Optimize GPU settings for Roblox" recommended checked={cfg.basic.robloxGpuBoost} onChange={v => updateConfig(selectedApp.id, 'basic', 'robloxGpuBoost', v)} />
+                      <BoostRow label="Roblox Network Opt" desc="Optimize network for Roblox servers" recommended checked={cfg.basic.robloxNetworkOpt} onChange={v => updateConfig(selectedApp.id, 'basic', 'robloxNetworkOpt', v)} />
+                      <BoostRow label="Roblox CPU Boost" desc="Optimize CPU for Roblox engine" recommended checked={cfg.basic.robloxCpuBoost} onChange={v => updateConfig(selectedApp.id, 'basic', 'robloxCpuBoost', v)} />
+                    </div>
+                  )}
+
+                  <div className="ab-boost-btn-row">
+                    {isBoosting ? (
+                      <div className="ab-boost-stages">
+                        {BOOST_STAGES.map((s, i) => {
+                          const SI = s.icon;
+                          return (
+                            <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
+                              {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
+                              <span>{s.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <button className={`ab-boost-action ${boostedMode === 'basic' ? 'boosted' : ''}`} onClick={() => handleBoost(selectedApp, 'basic')}>
+                        {boostedMode === 'basic' ? <><CheckCircle size={14} /> Boosted</> : <><Zap size={14} /> Boost Now</>}
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {configTab === 'ultimate' && (
+                <motion.div key="ultimate" className="ab-tab-body" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
+                  {!isPremium ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '32px 0', textAlign: 'center' }}>
+                      <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a78bfa' }}><Lock size={20} /></div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Ultimate Boost is a Pro Feature</div>
+                      <div style={{ fontSize: 12, color: '#555' }}>Upgrade to Premium to unlock the most aggressive single-click boost</div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="ab-focus-hero" style={{ borderColor: 'rgba(167,139,250,0.2)', background: 'rgba(167,139,250,0.04)' }}>
+                        <div className="ab-focus-icon" style={{ background: 'rgba(167,139,250,0.1)', color: '#a78bfa' }}><Crown size={22} /></div>
+                        <div>
+                          <div className="ab-focus-title" style={{ color: '#a78bfa' }}>Ultimate Boost</div>
+                          <div className="ab-focus-desc">
+                            The most aggressive single-click optimization. Applies every performance tweak simultaneously —
+                            CPU, GPU, memory, network, scheduler, power, and all Pro settings — for maximum FPS in <strong>{selectedApp.name}</strong>.
+                          </div>
+                        </div>
+                      </div>
+                      <div className="ab-focus-checklist">
+                        {[
+                          'Everything in Focus Mode applied first',
+                          'Enable GPU Hardware Scheduling (HAGS)',
+                          'Force high-resolution platform timer (0.5ms)',
+                          'Disable UWP background app execution globally',
+                          'Roblox-specific: long CPU quanta + network ACK opt',
+                          'DirectX debug flags disabled + IOMMU mapping optimized',
+                          'Core parking disabled via power settings',
+                          'CPU priority: High + I/O: High for all game threads',
+                        ].map(item => (
+                          <div key={item} className="ab-focus-check-row">
+                            <Crown size={11} style={{ color: '#a78bfa', flexShrink: 0 }} />
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="ab-boost-btn-row">
+                        {isBoosting ? (
+                          <div className="ab-boost-stages">
+                            {BOOST_STAGES.map((s, i) => {
+                              const SI = s.icon;
+                              return (
+                                <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
+                                  {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
+                                  <span>{s.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <button
+                            className={`ab-boost-action ${boostedMode === 'ultimate' ? 'boosted' : ''}`}
+                            style={{ background: boostedMode === 'ultimate' ? 'rgba(167,139,250,0.15)' : 'rgba(167,139,250,0.08)', borderColor: boostedMode === 'ultimate' ? 'rgba(167,139,250,0.5)' : 'rgba(167,139,250,0.25)', color: '#a78bfa' }}
+                            onClick={() => handleBoost(selectedApp, 'ultimate')}
+                          >
+                            {boostedMode === 'ultimate' ? <><CheckCircle size={14} /> Ultimate Active</> : <><Crown size={14} /> Ultimate Boost</>}
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              )}
+
+              {configTab === 'focus' && (
+                <motion.div key="focus" className="ab-tab-body" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
+                  <div className="ab-focus-hero">
+                    <div className="ab-focus-icon"><Target size={22} style={{ color: '#e03030' }} /></div>
+                    <div>
+                      <div className="ab-focus-title">Focus Mode</div>
+                      <div className="ab-focus-desc">
+                        Kills background apps, stops unnecessary services, disables notifications,
+                        trims RAM standby list, and gives <strong>{selectedApp.name}</strong> maximum CPU, GPU &amp; network priority.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="ab-focus-checklist">
+                    {[
+                      'Kill ALL background apps (OneDrive, Discord, Chrome, Teams…)',
+                      'Stop SysMain, DiagTrack, WSearch, BITS, Update services',
+                      'Set process to REALTIME priority + High I/O priority',
+                      'GPU scheduling → High, Clock Rate 10000, Disable timeout',
+                      'DSCP QoS tag 46 + Disable Nagle for lowest latency',
+                      'Disable ALL power throttling + Set power plan to Ultimate',
+                      'Clear ALL standby memory + Force garbage collection',
+                      'Disable Windows notifications, updates, and focus assist',
+                      'Disable fullscreen optimizations + Game DVR overlay',
+                      'Set CPU affinity to performance cores only',
+                      'Optimize TCP stack for gaming (TCP No Delay, Window Scaling)',
+                      'Disable HPET and set timer resolution to 0.5ms',
+                      'Trim SSD drives and optimize disk I/O',
+                      'Disable audio enhancements and optimize audio latency',
+                      'Set GPU power mode to maximum performance',
+                      selectedApp.name.toLowerCase().includes('roblox') ? 'Roblox: Optimize rendering pipeline + network buffer' : 'Apply game-specific optimizations',
+                    ].map(item => (
+                      <div key={item} className="ab-focus-check-row">
+                        <CheckCircle size={12} style={{ color: '#e03030', flexShrink: 0 }} />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="ab-boost-btn-row">
+                    {isBoosting ? (
+                      <div className="ab-boost-stages">
+                        {BOOST_STAGES.map((s, i) => {
+                          const SI = s.icon;
+                          return (
+                            <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
+                              {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
+                              <span>{s.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <button className={`ab-boost-action ab-focus-btn ${focusActive[selectedApp.id] ? 'boosted' : ''}`} onClick={() => handleBoost(selectedApp, 'focus')}>
+                        {focusActive[selectedApp.id]
+                          ? <><CheckCircle size={14} /> Focus Mode Active</>
+                          : <><Flame size={14} /> Activate Focus Mode</>
+                        }
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const boostedCount = Object.keys(boosted).length;
+  const focusCount = Object.keys(focusActive).filter(k => focusActive[k]).length;
+
+  // ── Library view ────────────────────────────────────────────────────────
+  return (
+    <div className="booster-page">
+      <PageHeader icon={Rocket} title="App Booster" subtitle="Select a program to configure and boost" iconColor="#5030e0" />
+
+      <div className="ab-library-toolbar">
+        <div className="booster-search-wrap">
+          <Search size={12} className="booster-search-icon" />
+          <input className="booster-search" placeholder="Search library..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+        </div>
+        <button className="btn-detect" onClick={handleDetect} disabled={detecting}>
+          <RefreshCw size={13} className={detecting ? 'btn-spinner-icon' : ''} />
+          {detecting ? 'Detecting...' : 'Auto-Detect'}
+        </button>
+        <button className="btn-add-app" onClick={handleAddApp}>
+          <Plus size={13} /> Add Program
+        </button>
+      </div>
+
+      <div className="ab-library-section-label">Program Library</div>
+
+      <div className="booster-content">
+      <div className="page-body">
+      <div className="page-main">
+      <div className="ab-library-grid">
+        <AnimatePresence>
+          {filteredApps.map((app, i) => {
+            const isRunning = runningApps.has(app.id);
+            const isBoostedApp = !!boosted[app.id];
+            return (
+            <motion.div
+              key={app.id}
+              className={`ab-library-card ${isBoostedApp ? 'boosted' : ''} ${focusActive[app.id] ? 'focus-active' : ''} ${isRunning ? 'ab-card-running' : ''}`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15, delay: i * 0.02 }}
+              onClick={() => { setSelected(app.id); setConfigTab('basic'); }}
+            >
+              <div className="ab-library-art">
+                <GameArt logo={app.logo} emoji={app.emoji} name={app.name} size="card" />
+                {isRunning && (
+                  <div className="ab-live-badge">
+                    <span className="ab-live-dot" />
+                    LIVE
+                  </div>
+                )}
+                {isBoostedApp && !isRunning && (
+                  <div className="ab-library-boosted-badge">
+                    {focusActive[app.id] ? <><Target size={9} /> Focus</> : <><Zap size={9} /> Boosted</>}
+                  </div>
+                )}
+                {isRunning && (
+                  <button
+                    className={`ab-quick-boost-btn ${isBoostedApp ? 'ab-quick-boost-active' : ''}`}
+                    onClick={e => { e.stopPropagation(); handleBoost(app, 'basic'); }}
+                    title="Quick boost this running app"
+                  >
+                    {isBoostedApp ? <><CheckCircle size={11} /> Boosted</> : <><Zap size={11} /> Boost</>}
+                  </button>
+                )}
+              </div>
+              <div className="ab-library-label">
+                <span>{app.name}</span>
+                {isRunning && <span className="ab-label-running">Running</span>}
+              </div>
+            </motion.div>
+            );
+          })}
+
+          {/* Add card */}
+          <motion.div
+            key="add"
+            className="ab-library-card ab-library-add"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={handleAddApp}
+          >
+            <div className="ab-library-add-inner">
+              <Plus size={22} style={{ color: '#444' }} />
+              <span>Click to add Program</span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {apps.length === 0 && !detecting && (
+        <div className="booster-empty">
+          <Gamepad2 size={36} style={{ color: '#5030e0', opacity: 0.25 }} />
+          <p className="booster-empty-title">No programs added</p>
+          <p className="booster-empty-sub">Click "Auto-Detect" to scan for games, or add manually</p>
+        </div>
+      )}
+      </div>{/* page-main */}
+
+      <aside className="page-sidebar">
+        <div className="psb-card">
+          <div className="psb-title"><Rocket size={11} /> Library Stats</div>
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Programs</span>
+            <span className="psb-stat-val">{apps.length}</span>
+          </div>
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Running Now</span>
+            <span className="psb-stat-val" style={{ color: runningApps.size > 0 ? '#22c55e' : undefined }}>{runningApps.size}</span>
+          </div>
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Boosted</span>
+            <span className="psb-stat-val" style={{ color: boostedCount > 0 ? '#a78bfa' : undefined }}>{boostedCount}</span>
+          </div>
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Focus Mode</span>
+            <span className="psb-stat-val" style={{ color: focusCount > 0 ? '#e03030' : undefined }}>{focusCount}</span>
+          </div>
+          <div className="psb-divider" />
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Games</span>
+            <span className="psb-stat-val">{apps.filter(a => !a.isApp).length}</span>
+          </div>
+          <div className="psb-stat-row">
+            <span className="psb-stat-label">Apps</span>
+            <span className="psb-stat-val">{apps.filter(a => a.isApp).length}</span>
+          </div>
+        </div>
+
+        <div className="psb-card">
+          <div className="psb-title"><Zap size={11} /> Boost Modes</div>
+          <div className="psb-status-row"><div className="psb-dot purple" /><span className="psb-status-label" style={{fontSize:11}}>Optimizations</span></div>
+          <p className="psb-info-text" style={{marginBottom:8}}>Full suite of tweaks — safe ones auto-on, risky ones optional.</p>
+          <div className="psb-status-row"><div className="psb-dot red" /><span className="psb-status-label" style={{fontSize:11}}>Focus Mode</span></div>
+          <p className="psb-info-text">Kills background apps and gives target 100% resources.</p>
+        </div>
+
+        <div className="psb-card">
+          <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+          <ul className="psb-tips">
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Boost before launching, not after</li>
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Use Focus Mode for competitive games</li>
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> Auto-Detect finds Steam &amp; Epic games</li>
+            <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}} /> ⚠️ Caution items are off by default</li>
+          </ul>
+        </div>
+      </aside>
+      </div>{/* page-body */}
+      </div>{/* booster-content */}
+    </div>
+  );
+}

@@ -1,0 +1,126 @@
+@keyframes wp-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes wp-nebula3 {
+  0% { background-position: 0% 0%; }
+  33% { background-position: 100% 50%; }
+  66% { background-position: 50% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.wallpaper-forest {
+  background: linear-gradient(-45deg, #001a00, #002d00, #001200, #003800, #002000, #001500);
+  background-size: 400% 400%;
+  animation: wp-shift 20s ease infinite;
+}
+.wallpaper-sunset {
+  background: linear-gradient(-45deg, #1a0800, #2d1500, #120600, #381a00, #200e00, #150800);
+  background-size: 400% 400%;
+  animation: wp-shift 16s ease infinite;
+}
+.wallpaper-galaxy {
+  background: linear-gradient(-45deg, #0a0015, #1a0030, #0d001a, #260040, #080010, #1a0028);
+  background-size: 600% 600%;
+  animation: wp-nebula3 24s ease infinite;
+}
+.wallpaper-volcano {
+  background: linear-gradient(-45deg, #1a0000, #300000, #0d0000, #400000, #200000, #150000);
+  background-size: 400% 400%;
+  animation: wp-shift 12s ease infinite;
+}
+.wallpaper-arctic {
+  background: linear-gradient(-45deg, #001525, #002540, #001a30, #003550, #001e3a, #002848);
+  background-size: 400% 400%;
+  animation: wp-shift 18s ease infinite;
+}
+.wallpaper-desert {
+  background: linear-gradient(-45deg, #1a1500, #2d2500, #121a00, #383000, #201c00, #181200);
+  background-size: 400% 400%;
+  animation: wp-shift 22s ease infinite;
+}
+.wallpaper-cherry {
+  background: linear-gradient(-45deg, #1a0015, #2d0025, #0d001a, #400030, #200018, #150010);
+  background-size: 400% 400%;
+  animation: wp-shift 18s ease infinite;
+}
+.wallpaper-midnight {
+  background: linear-gradient(-45deg, #00000a, #000015, #00000d, #000020, #000008, #00000f);
+  background-size: 400% 400%;
+  animation: wp-shift 28s ease infinite;
+}
+.wallpaper-toxic {
+  background: linear-gradient(-45deg, #001a00, #003300, #001200, #004400, #002500, #001800);
+  background-size: 400% 400%;
+  animation: wp-shift 14s ease infinite;
+}
+.wallpaper-royal {
+  background: linear-gradient(-45deg, #1a0015, #330025, #1a0025, #400030, #260018, #1a0020);
+  background-size: 600% 600%;
+  animation: wp-nebula3 20s ease infinite;
+}
+
+@keyframes wp-aurora {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes wp-nebula {
+  0% { background-position: 0% 0%; }
+  33% { background-position: 100% 50%; }
+  66% { background-position: 50% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes wp-ember {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes wp-cyber {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes wp-ocean {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.wallpaper-base {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.wallpaper-aurora {
+  background: linear-gradient(-45deg, #02000f, #0a0030, #000d22, #0d0035, #000920, #060020);
+  background-size: 400% 400%;
+  animation: wp-aurora 18s ease infinite;
+}
+
+.wallpaper-nebula {
+  background: linear-gradient(135deg, #0a0015, #140040, #04000f, #1c0050, #06001a, #0e0030);
+  background-size: 600% 600%;
+  animation: wp-nebula 22s ease infinite;
+}
+
+.wallpaper-ember {
+  background: linear-gradient(-45deg, #0a0000, #200400, #0d0000, #2a0600, #160100, #0a0000);
+  background-size: 400% 400%;
+  animation: wp-ember 14s ease infinite;
+}
+
+.wallpaper-cyber {
+  background: linear-gradient(-45deg, #000a14, #001828, #00091a, #002240, #000e20, #001030);
+  background-size: 400% 400%;
+  animation: wp-cyber 16s ease infinite;
+}
+
+.wallpaper-ocean {
+  background: linear-gradient(-45deg, #000810, #001520, #000c18, #001e30, #000a14, #001228);
+  background-size: 400% 400%;
+  animation: wp-ocean 20s ease infinite;
+}

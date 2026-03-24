@@ -1,0 +1,235 @@
+.cleaner-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 28px 0 28px;
+  overflow: hidden;
+}
+
+.cleaner-scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+  padding-bottom: 20px;
+}
+
+.cleaner-options-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: var(--text-muted);
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cleaner-options-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.cleaner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cleaner-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cleaner-row:hover {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+.cleaner-row.on {
+  background: rgba(var(--accent-rgb), 0.04);
+  border-color: rgba(var(--accent-rgb), 0.15);
+}
+
+.cleaner-row-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cleaner-row-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.cleaner-row-warning {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--red-primary);
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+/* Toggle reuse */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: #2a2a2a;
+  border: 1px solid #333;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--red-primary);
+  border-color: var(--red-primary);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4);
+}
+
+.toggle-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(var(--accent-rgb), 0.4);
+}
+
+/* Progress */
+.cleaner-progress {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cleaner-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.cleaner-progress-bar {
+  height: 4px;
+  background: #222;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cleaner-progress-fill {
+  height: 100%;
+  background: var(--red-primary);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.5);
+}
+
+/* Buttons */
+.cleaner-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cleaner-run-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  background: var(--red-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cleaner-run-btn:hover:not(:disabled) {
+  background: var(--red-bright);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.45);
+}
+
+.cleaner-run-btn.loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+.cleaner-run-btn.done {
+  background: rgba(74, 222, 128, 0.2);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+  cursor: default;
+}
+
+.cleaner-schedule-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px;
+  background: #141414;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #222;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cleaner-schedule-btn:hover:not(:disabled) {
+  background: #1c1c1c;
+  border-color: #333;
+  color: var(--text-primary);
+}
+
+.cleaner-schedule-btn.scheduled {
+  background: rgba(74, 222, 128, 0.08);
+  border-color: rgba(74, 222, 128, 0.25);
+  color: #4ade80;
+  cursor: default;
+}
+
+.cleaner-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

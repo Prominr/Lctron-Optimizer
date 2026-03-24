@@ -1,0 +1,48 @@
+.tweak-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 28px 20px 28px;
+  overflow: hidden;
+}
+
+.tweak-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-right: 6px;
+  padding-bottom: 16px;
+}
+
+.tweak-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tweak-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.8px;
+  color: var(--text-muted);
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tweak-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.tweak-section-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}

@@ -1,0 +1,116 @@
+.restart-banner {
+  position: fixed;
+  top: 38px;
+  left: 0;
+  right: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #1e1a0e;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+.restart-banner-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.restart-banner-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.restart-banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fef3c7;
+}
+
+.restart-banner-notes {
+  font-size: 11px;
+  color: rgba(254, 243, 199, 0.6);
+}
+
+.restart-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.restart-now-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fbbf24;
+  transition: all 0.15s ease;
+}
+
+.restart-now-btn:hover {
+  background: rgba(251, 191, 36, 0.25);
+}
+
+.restart-countdown {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.restart-cancel-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid #333;
+  color: #888;
+  transition: all 0.15s ease;
+}
+
+.restart-cancel-btn:hover {
+  background: #1a1a1a;
+  color: #aaa;
+}
+
+.restart-dismiss-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.restart-dismiss-btn:hover {
+  background: #1a1a1a;
+  color: #888;
+}
