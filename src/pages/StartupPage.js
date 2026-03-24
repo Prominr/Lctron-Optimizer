@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlayCircle, ToggleLeft, ToggleRight, RefreshCw, FolderOpen, Zap, ShieldOff, Lightbulb, CheckCircle, AlertTriangle } from 'lucide-react';
+import { PlayCircle, ToggleLeft, ToggleRight, RefreshCw, FolderOpen, Zap, ShieldOff, Lightbulb, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import './StartupPage.css';
 import './PageSidebar.css';

@@ -188,7 +188,6 @@ export default function NetworkScriptsPage({ addToast, setActivePage }) {
       <aside className="page-sidebar">
         {(() => {
           const C = 2 * Math.PI * 22;
-          const appliedCount = Object.values(done).filter(Boolean).length;
           const applyPct = scripts.length > 0 ? Math.round((appliedCount / scripts.length) * 100) : 0;
           const ringColor = applyPct === 0 ? '#444' : applyPct < 50 ? '#f59e0b' : applyPct < 100 ? '#22c55e' : '#06b6d4';
           const ringLabel = applyPct === 0 ? 'Not Applied' : applyPct < 50 ? 'Partial' : applyPct < 100 ? 'Mostly Done' : 'All Applied';

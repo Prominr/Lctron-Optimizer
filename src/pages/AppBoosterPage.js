@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, Plus, Trash2, Zap, Wifi, Cpu, Monitor, CheckCircle, Search, Gamepad2, RefreshCw, ChevronLeft, Settings, Target, Flame, Save, FolderOpen, BrainCircuit, Lightbulb, AlertTriangle, Crown, Lock, TrendingDown, Activity } from 'lucide-react';
+import { Rocket, Plus, Trash2, Zap, Wifi, Cpu, Monitor, CheckCircle, Search, Gamepad2, RefreshCw, ChevronLeft, Settings, Target, Flame, Save, FolderOpen, BrainCircuit, Lightbulb, AlertTriangle, Crown, Lock, TrendingDown, Activity, Info } from 'lucide-react';
 import { usePremium } from '../context/PremiumContext';
 import PageHeader from '../components/PageHeader';
 import './AppBoosterPage.css';
