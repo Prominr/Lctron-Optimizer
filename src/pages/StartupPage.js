@@ -90,7 +90,7 @@ export default function StartupPage({ addToast }) {
         </div>
       </motion.div>
 
-      <div className="page-body" style={{alignItems:'flex-start'}}>
+      <div className="page-body">
       <div className="page-main">
       <div className="startup-scroll">
       {loading ? (

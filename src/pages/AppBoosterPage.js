@@ -811,6 +811,7 @@ export default function AppBoosterPage({ addToast }) {
       <div className="booster-content">
       <div className="page-body">
       <div className="page-main">
+      <div className="ab-library-scroll">
       <div className="ab-library-grid">
         <AnimatePresence>
           {filteredApps.map((app, i) => {
@@ -880,6 +881,7 @@ export default function AppBoosterPage({ addToast }) {
           <p className="booster-empty-sub">Click "Auto-Detect" to scan for games, or add manually</p>
         </div>
       )}
+      </div>{/* ab-library-scroll */}
       </div>{/* page-main */}
 
       <aside className="page-sidebar">

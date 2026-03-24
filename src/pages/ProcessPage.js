@@ -94,7 +94,7 @@ export default function ProcessPage({ addToast }) {
         </button>
       </div>
 
-      <div className="page-body" style={{alignItems:'flex-start'}}>
+      <div className="page-body">
       <div className="page-main">
       <div className="process-table-wrap">
         <div className="process-table-head">

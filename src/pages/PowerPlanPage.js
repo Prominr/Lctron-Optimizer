@@ -174,8 +174,8 @@ export default function PowerPlanPage({ addToast }) {
         </motion.button>
       </motion.div>
 
-      <div className="page-body" style={{alignItems:'flex-start'}}>
-      <div className="page-main" style={{minWidth:0}}>
+      <div className="page-body">
+      <div className="page-main">
       <div className="pp-scroll">
         {/* Plan Selector */}
         <section className="pp-section">
