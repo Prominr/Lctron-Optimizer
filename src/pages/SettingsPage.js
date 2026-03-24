@@ -330,7 +330,7 @@ export default function SettingsPage({ loggedInUser, onLogout, currentTheme, onT
           {/* App info */}
           <motion.div className="st-app-card" {...anim(0.07)}>
             <div className="st-app-card-title"><Package size={10} /> App Info</div>
-            <div className="st-app-row"><span className="st-app-row-label">Version</span><span className="st-app-row-val">v1.7.32</span></div>
+            <div className="st-app-row"><span className="st-app-row-label">Version</span><span className="st-app-row-val">v1.7.33</span></div>
             <div className="st-app-row"><span className="st-app-row-label">Platform</span><span className="st-app-row-val">Windows</span></div>
             <div className="st-app-row"><span className="st-app-row-label">Engine</span><span className="st-app-row-val">Electron 30</span></div>
             <div className="st-app-row"><span className="st-app-row-label">Channel</span><span className="st-app-row-val" style={{color:'#22c55e'}}>Stable</span></div>
@@ -619,7 +619,7 @@ export default function SettingsPage({ loggedInUser, onLogout, currentTheme, onT
                 </div>
                 <div className="st-update-info">
                   <span className="st-update-title">Lctron Optimizer</span>
-                  <span className="st-update-sub">v1.7.32 installed</span>
+                  <span className="st-update-sub">v1.7.33 installed</span>
                   {updateStatus === 'not-available' && <span className="st-update-ok">✓ You're up to date</span>}
                   {updateStatus === 'available'     && <span className="st-update-new">v{updateVersion} available!</span>}
                   {updateStatus === 'downloading'   && (
@@ -756,7 +756,7 @@ export default function SettingsPage({ loggedInUser, onLogout, currentTheme, onT
             <div className="st-section-label"><Info size={12} /> About</div>
             <div className="st-card">
               <div className="st-about-row"><span className="st-about-label">Application</span><span className="st-about-val">Lctron Optimizer</span></div>
-              <div className="st-about-row"><span className="st-about-label">Version</span><span className="st-about-val">v1.7.32</span></div>
+              <div className="st-about-row"><span className="st-about-label">Version</span><span className="st-about-val">v1.7.33</span></div>
               <div className="st-about-row"><span className="st-about-label">Build</span><span className="st-about-val">Stable</span></div>
               <div className="st-about-row"><span className="st-about-label">Framework</span><span className="st-about-val">Electron 30 + React</span></div>
               <div className="st-about-row"><span className="st-about-label">Platform</span><span className="st-about-val">Windows 10 / 11</span></div>

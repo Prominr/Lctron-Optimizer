@@ -21,6 +21,12 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  align-self: stretch;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+  padding-bottom: 16px;
 }
 
 .psb-card {
@@ -114,17 +120,10 @@
   border-radius: 4px;
 }
 
-/* ── Scrollable sidebar ─────────────────────────────────────────── */
-.page-sidebar {
-  overflow-y: auto;
-  max-height: 100%;
-  padding-right: 2px;
-  scrollbar-width: thin;
-  scrollbar-color: #1e1e1e transparent;
-}
+/* webkit scrollbar for sidebar */
 .page-sidebar::-webkit-scrollbar { width: 3px; }
 .page-sidebar::-webkit-scrollbar-track { background: transparent; }
-.page-sidebar::-webkit-scrollbar-thumb { background: #1e1e1e; border-radius: 2px; }
+.page-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
 /* ── Mini progress bar row ──────────────────────────────────────── */
 .psb-bar-row {

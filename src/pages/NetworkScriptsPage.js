@@ -188,21 +188,21 @@ export default function NetworkScriptsPage({ addToast, setActivePage }) {
       <aside className="page-sidebar">
         {(() => {
           const C = 2 * Math.PI * 22;
+          const appliedCount = Object.values(done).filter(Boolean).length;
           const applyPct = scripts.length > 0 ? Math.round((appliedCount / scripts.length) * 100) : 0;
           const ringColor = applyPct === 0 ? '#444' : applyPct < 50 ? '#f59e0b' : applyPct < 100 ? '#22c55e' : '#06b6d4';
           const ringLabel = applyPct === 0 ? 'Not Applied' : applyPct < 50 ? 'Partial' : applyPct < 100 ? 'Mostly Done' : 'All Applied';
-          const networkImpact = [
-            { label: 'NIC Settings',    pct: done['optimize-nic'] ? 100 : 0,           color: '#e03030' },
-            { label: 'TCP/IP Stack',    pct: done['optimize-tcpip'] ? 95 : 0,           color: '#f59e0b' },
-            { label: 'Bufferbloat Fix', pct: done['optimize-bufferbloat'] ? 85 : 0,    color: '#06b6d4' },
-            { label: 'Gaming Network',  pct: done['optimize-gaming-network'] ? 80 : 0, color: '#a78bfa' },
-            { label: 'WiFi Adapter',    pct: done['optimize-wifi-adapter'] ? 75 : 0,   color: '#22c55e' },
-            { label: 'DNS Flush',       pct: done['flush-dns'] ? 60 : 0,               color: '#888'    },
+          const scriptDetails = [
+            { id: 'optimize-nic', short: 'NIC Settings', gain: '-5–15ms', what: 'Sets interrupt moderation, RSS queues, and buffer sizes on your NIC for minimum latency.', pro: true, color: '#e03030' },
+            { id: 'optimize-bufferbloat', short: 'Bufferbloat Fix', gain: 'Jitter ↓70%', what: 'Limits queue size so packets don\'t pile up. Trades raw speed for consistent low ping.', pro: true, color: '#f59e0b' },
+            { id: 'optimize-gaming-network', short: 'Gaming Profile', gain: 'Ping spikes ↓', what: 'Curated TCP/IP + DNS + NIC combination tuned for online gaming latency.', pro: true, color: '#a78bfa' },
+            { id: 'reset-network-stack', short: 'Reset Stack', gain: 'Full reset', what: 'Winsock + TCP/IP reset. Use this to undo all tweaks if something goes wrong.', pro: false, color: '#888' },
+            { id: 'flush-dns', short: 'Flush & DNS', gain: 'DNS < 5ms', what: 'Clears DNS cache and switches to Google (8.8.8.8) + Cloudflare (1.1.1.1) servers.', pro: false, color: '#22c55e' },
+            { id: 'optimize-wifi-adapter', short: 'Wi-Fi Adapter', gain: 'WiFi lag ↓', what: 'Disables power saving + background scans on wireless adapter. Max TX power.', pro: true, color: '#06b6d4' },
           ];
-          const totalImpact = Math.round(networkImpact.reduce((s,m) => s + m.pct, 0) / networkImpact.length);
           return (<>
 
-            {/* ── Scripts Applied Ring ── */}
+            {/* ── Applied Status ── */}
             <motion.div className="psb-card psb-accent-red"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 }}>
               <div className="psb-title"><BarChart2 size={11} /> Scripts Applied</div>
@@ -223,7 +223,7 @@ export default function NetworkScriptsPage({ addToast, setActivePage }) {
                   {running && (
                     <div style={{marginTop:4,display:'flex',alignItems:'center',gap:5}}>
                       <div className="psb-live-dot"/>
-                      <span style={{fontSize:9,color:'#f59e0b',fontWeight:700}}>RUNNING...</span>
+                      <span style={{fontSize:9,color:'#f59e0b',fontWeight:700}}>RUNNING…</span>
                     </div>
                   )}
                 </div>
@@ -242,77 +242,109 @@ export default function NetworkScriptsPage({ addToast, setActivePage }) {
                   <div className="psb-stat-cell-label">Status</div>
                 </div>
                 <div className="psb-stat-cell">
-                  <div className="psb-stat-cell-val" style={{color:totalImpact>0?'#06b6d4':'#444'}}>{totalImpact>0?`${totalImpact}%`:'—'}</div>
-                  <div className="psb-stat-cell-label">Net Impact</div>
+                  <div className="psb-stat-cell-val">{scripts.length}</div>
+                  <div className="psb-stat-cell-label">Total</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* ── Script Checklist ── */}
+            {/* ── What Each Script Does ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.07 }}>
-              <div className="psb-title"><Shield size={11} /> Script Checklist</div>
-              <div className="psb-rule">Run in Order</div>
-              <div className="psb-timeline">
-                {scripts.map((s,i) => {
-                  const isDone = done[s.id];
-                  const isRunning = running === s.id;
-                  return (
-                    <div key={s.id} className="psb-tl-item">
-                      <div className="psb-tl-left">
-                        <div className="psb-tl-dot" style={{
-                          borderColor: isDone ? '#22c55e' : isRunning ? '#f59e0b' : '#333',
-                          background: isDone ? 'rgba(34,197,94,0.15)' : isRunning ? 'rgba(245,158,11,0.15)' : 'transparent'
-                        }}/>
-                        <div className="psb-tl-line"/>
-                      </div>
-                      <div className="psb-tl-body">
-                        <div className="psb-tl-title" style={{color:isDone?'#22c55e':isRunning?'#f59e0b':undefined}}>
-                          {i+1}. {s.title.replace('Optimize ','').replace(' Settings','').replace(' Adapter','')}
-                        </div>
-                        <div className="psb-tl-sub">{isDone ? '✓ Applied' : isRunning ? '⟳ Running…' : 'Pending'}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.06 }}>
+              <div className="psb-title"><Info size={11} /> What Each Script Does</div>
+              {scriptDetails.map((s, i) => (
+                <div key={s.id} style={{marginBottom: i < scriptDetails.length-1 ? 10 : 0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:done[s.id]?'#22c55e':s.color,flexShrink:0}}/>
+                    <span style={{fontSize:10.5,fontWeight:700,color:done[s.id]?'#22c55e':undefined}}>{s.short}</span>
+                    {s.pro && <span style={{fontSize:8,fontWeight:700,padding:'1px 4px',borderRadius:3,background:'rgba(167,139,250,0.12)',color:'#a78bfa'}}>PRO</span>}
+                    <span style={{marginLeft:'auto',fontSize:9,fontWeight:700,color:done[s.id]?'#22c55e':s.color}}>{done[s.id]?'✓':s.gain}</span>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{s.what}</p>
+                  {i < scriptDetails.length-1 && <div className="psb-divider" style={{marginTop:10}}/>}
+                </div>
+              ))}
             </motion.div>
 
-            {/* ── Network Impact ── */}
+            {/* ── Performance Gains ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
-              <div className="psb-title"><Activity size={11} /> Network Improvements</div>
-              <div className="psb-rule">Per-Optimization Gain</div>
-              {networkImpact.map(m => (
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }}>
+              <div className="psb-title"><Activity size={11} /> Expected Gains</div>
+              <div className="psb-rule">After All Scripts Applied</div>
+              {[
+                { label: 'Avg Ping',      val: '-10–20ms',   color: '#22c55e', pct: done['optimize-nic']||done['optimize-gaming-network']?75:0 },
+                { label: 'Ping Spikes',   val: '-60–80%',    color: '#06b6d4', pct: done['optimize-bufferbloat']?80:0 },
+                { label: 'DNS Lookup',    val: '< 5ms',      color: '#a78bfa', pct: done['flush-dns']?90:0 },
+                { label: 'WiFi Jitter',   val: '-40%',       color: '#f59e0b', pct: done['optimize-wifi-adapter']?70:0 },
+                { label: 'NIC Latency',   val: '-15ms',      color: '#e03030', pct: done['optimize-nic']?85:0 },
+              ].map(m => (
                 <div key={m.label} className="psb-bar-row">
                   <div className="psb-bar-header">
                     <span className="psb-bar-label">{m.label}</span>
-                    <span className="psb-bar-val" style={{color:m.pct>0?m.color:'#444'}}>{m.pct>0?`${m.pct}%`:'—'}</span>
+                    <span className="psb-bar-val" style={{color:m.pct>0?m.color:'#444'}}>{m.pct>0?m.val:'—'}</span>
                   </div>
                   <div className="psb-bar-track">
-                    <div className="psb-bar-fill" style={{width:`${m.pct}%`,background:m.pct>0?m.color:'#333'}}/>
+                    <div className="psb-bar-fill" style={{width:`${m.pct}%`,background:m.color}}/>
                   </div>
                 </div>
               ))}
-              <div className="psb-divider"/>
-              <div className="psb-tags">
-                <span className="psb-tag green">Low Ping</span>
-                <span className="psb-tag blue">No Bloat</span>
-                <span className="psb-tag red">NIC Opt</span>
-                <span className="psb-tag purple">Gaming</span>
-              </div>
             </motion.div>
 
-            {/* ── Tips ── */}
+            {/* ── Ethernet vs WiFi ── */}
             <motion.div className="psb-card"
-              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
-              <div className="psb-title"><Lightbulb size={11} /> Tips</div>
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
+              <div className="psb-title"><Wifi size={11} /> Ethernet vs Wi-Fi</div>
+              <div className="psb-rule" style={{color:'#22c55e'}}>Ethernet (Best)</div>
+              <ul className="psb-tips" style={{marginBottom:8}}>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Run NIC Settings + Gaming Profile</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Bufferbloat fix works best on wired</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Skip Wi-Fi Adapter script (not needed)</li>
+              </ul>
+              <div className="psb-rule" style={{color:'#f59e0b'}}>Wi-Fi</div>
               <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Run scripts 1 → 6 in order for best results</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Apply NIC Settings before other scripts</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Flush DNS last to clean up after changes</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Bufferbloat fix may reduce peak raw speed</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Reset Stack undoes all network tweaks</li>
+                <li><CheckCircle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Run Wi-Fi Adapter script first</li>
+                <li><CheckCircle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Bufferbloat fix less effective on WiFi</li>
+                <li><AlertTriangle size={10} style={{color:'#888',flexShrink:0}}/> Ethernet always gives lower latency</li>
+              </ul>
+            </motion.div>
+
+            {/* ── DNS Reference ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.12 }}>
+              <div className="psb-title"><Shield size={11} /> DNS Reference</div>
+              <div className="psb-rule">Servers Set by Flush Script</div>
+              {[
+                { name: 'Google Primary',      ip: '8.8.8.8',    color: '#22c55e', note: 'Fastest global avg' },
+                { name: 'Google Secondary',    ip: '8.8.4.4',    color: '#22c55e', note: 'Fallback' },
+                { name: 'Cloudflare Primary',  ip: '1.1.1.1',    color: '#06b6d4', note: 'Privacy focused' },
+                { name: 'Cloudflare Secondary',ip: '1.0.0.1',    color: '#06b6d4', note: 'Fallback' },
+              ].map(d => (
+                <div key={d.ip} className="psb-live-row" style={{marginBottom:5}}>
+                  <div className="psb-live-dot" style={{background:d.color}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:10,fontWeight:600}}>{d.name}</div>
+                    <div style={{fontSize:9,color:'rgba(255,255,255,0.35)'}}>{d.note}</div>
+                  </div>
+                  <span style={{fontSize:9.5,fontWeight:700,color:d.color,fontFamily:'monospace'}}>{d.ip}</span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Recovery & Tips ── */}
+            <motion.div className="psb-card psb-accent-amber"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips &amp; Recovery</div>
+              <div className="psb-rule">Best Order</div>
+              <ul className="psb-tips">
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> <strong>1st:</strong> NIC Settings (foundation)</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> <strong>2nd:</strong> Gaming Profile or Bufferbloat</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> <strong>Last:</strong> Flush DNS (clears old cache)</li>
+              </ul>
+              <div className="psb-rule" style={{color:'#e03030'}}>If Something Breaks</div>
+              <ul className="psb-tips">
+                <li><AlertTriangle size={10} style={{color:'#e03030',flexShrink:0}}/> Run <strong>Reset Network Stack</strong> to undo all</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Reboot after reset for full effect</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Bufferbloat lowers raw speed — this is normal</li>
               </ul>
             </motion.div>
 

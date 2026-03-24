@@ -274,16 +274,87 @@ export default function StartupPage({ addToast }) {
               ))}
             </motion.div>
 
-            {/* ── Tips ── */}
+            {/* ── What Impact Levels Mean ── */}
             <motion.div className="psb-card"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
+              <div className="psb-title"><Info size={11} /> Impact Level Guide</div>
+              {[
+                { label: 'High Impact',   color: '#e03030', pct: 85, what: 'Adds 3–10s to boot. Heavy CPU/disk usage during startup. Safe candidates for disabling.' },
+                { label: 'Medium Impact', color: '#f59e0b', pct: 55, what: 'Adds 1–3s to boot. Some background activity. Review before disabling.' },
+                { label: 'Low Impact',    color: '#22c55e', pct: 25, what: 'Adds < 1s to boot. Minimal overhead. Fine to leave enabled.' },
+                { label: 'No Impact',     color: '#555',    pct: 5,  what: 'System services or drivers. Do NOT disable these.' },
+              ].map((t, i, arr) => (
+                <div key={t.label} style={{marginBottom: i<arr.length-1?9:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                    <span style={{fontSize:10.5,fontWeight:700}}>{t.label}</span>
+                    <div style={{flex:1,height:3,borderRadius:2,background:'rgba(255,255,255,0.05)',marginLeft:4}}>
+                      <div style={{width:`${t.pct}%`,height:'100%',borderRadius:2,background:t.color}}/>
+                    </div>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{t.what}</p>
+                  {i<arr.length-1 && <div className="psb-divider" style={{marginTop:9}}/>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Common Safe to Disable ── */}
+            <motion.div className="psb-card psb-accent-green"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+              <div className="psb-title"><CheckCircle size={11} style={{color:'#22c55e'}}/> Common Safe Disables</div>
+              <div className="psb-rule">Usually Fine to Turn Off</div>
+              {[
+                { name: 'Discord',          note: 'Launch manually when needed',    savings: '~1.5s' },
+                { name: 'Steam',            note: 'Open when gaming',               savings: '~2s' },
+                { name: 'Spotify',          note: 'Loads on first open anyway',     savings: '~1s' },
+                { name: 'OneDrive',         note: 'If you don\'t use it',           savings: '~3s' },
+                { name: 'Teams / Skype',    note: 'If not required for work',       savings: '~4s' },
+                { name: 'Adobe Updater',    note: 'Updater — not the app itself',   savings: '~2s' },
+                { name: 'Cortana',          note: 'Rarely needed at startup',       savings: '~1s' },
+              ].map(item => (
+                <div key={item.name} className="psb-live-row" style={{marginBottom:4}}>
+                  <div className="psb-live-dot" style={{background:'#22c55e'}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:10.5,fontWeight:600}}>{item.name}</div>
+                    <div style={{fontSize:9,color:'rgba(255,255,255,0.35)'}}>{item.note}</div>
+                  </div>
+                  <span style={{fontSize:9,fontWeight:700,color:'#22c55e',flexShrink:0}}>{item.savings}</span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Never Disable ── */}
+            <motion.div className="psb-card psb-accent-red"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.17 }}>
+              <div className="psb-title"><AlertTriangle size={11} style={{color:'#e03030'}}/> Never Disable</div>
+              <div className="psb-rule">System Critical</div>
+              {[
+                { name: 'Windows Security',  note: 'Your antivirus/malware protection' },
+                { name: 'GPU Drivers',        note: 'NVIDIA / AMD / Intel display drivers' },
+                { name: 'Audio Service',      note: 'Realtek, SteelSeries sound drivers' },
+                { name: 'VPN / Firewall',     note: 'Network security software' },
+                { name: 'Backup Services',    note: 'Cloud sync, backup agents' },
+              ].map(item => (
+                <div key={item.name} className="psb-live-row" style={{marginBottom:4}}>
+                  <div className="psb-live-dot" style={{background:'#e03030'}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:10.5,fontWeight:600}}>{item.name}</div>
+                    <div style={{fontSize:9,color:'rgba(255,255,255,0.35)'}}>{item.note}</div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Tips ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.19 }}>
               <div className="psb-title"><Lightbulb size={11} /> Tips</div>
               <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> High impact items slow boot the most</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Disable All before gaming for clean sessions</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Apps still work — just launch manually</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Re-enable if something stops working</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Never disable your antivirus</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Disable high-impact items first for max gain</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Disable one at a time to stay safe</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Re-enable any time without reinstalling</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Unsure about an item? Google the exe name</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Keep security/driver items always enabled</li>
               </ul>
             </motion.div>
 

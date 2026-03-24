@@ -457,15 +457,69 @@ export default function DebloatPage({ addToast }) {
               </div>
             </motion.div>
 
-            {/* ── Warning ── */}
-            <motion.div className="psb-card psb-accent-amber"
+            {/* ── What Each Category Removes ── */}
+            <motion.div className="psb-card"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
-              <div className="psb-title" style={{color:'#f59e0b'}}><AlertTriangle size={11} /> Important</div>
+              <div className="psb-title"><Info size={11} /> What Each Category Removes</div>
+              {[
+                { label: 'Microsoft Bloat', color: '#3b82f6', what: 'Cortana, 3D Viewer, Mixed Reality Portal, Maps, Skype, Tips, Weather, Xbox apps.' },
+                { label: 'Third Party',     color: '#f59e0b', what: 'Candy Crush, Disney+, Spotify preinstalls, Amazon, TikTok and other OEM-bundled apps.' },
+                { label: 'Gaming Services', color: '#a78bfa', what: 'Xbox Game Bar, Xbox Identity Provider, Gaming Services. Remove if you don\'t use Xbox.' },
+                { label: 'Productivity',    color: '#06b6d4', what: 'OneNote, Office Hub, Solitaire Collection, News, Get Help and feedback tools.' },
+                { label: 'UI Tweaks',       color: '#f97316', what: 'Removes taskbar widgets, News feed, Meet Now, Search bar clutter. Explorer restart needed.' },
+              ].map((c, i, arr) => (
+                <div key={c.label} style={{marginBottom: i<arr.length-1?9:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:c.color,flexShrink:0}}/>
+                    <span style={{fontSize:10.5,fontWeight:700}}>{c.label}</span>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{c.what}</p>
+                  {i<arr.length-1 && <div className="psb-divider" style={{marginTop:9}}/>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Always Safe to Remove ── */}
+            <motion.div className="psb-card psb-accent-green"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+              <div className="psb-title"><CheckCircle size={11} style={{color:'#22c55e'}}/> Always Safe to Remove</div>
+              <div className="psb-rule">Low/No Risk Items</div>
+              {[
+                { name: 'Candy Crush',      note: 'Preinstalled game',      color: '#22c55e' },
+                { name: 'Xbox Game Bar',    note: 'Overlay — use Alt+F4',   color: '#22c55e' },
+                { name: 'Cortana',          note: 'Voice assistant',         color: '#22c55e' },
+                { name: '3D Viewer',        note: 'Rarely used',             color: '#22c55e' },
+                { name: 'Maps',             note: 'Use browser instead',     color: '#22c55e' },
+                { name: 'Mixed Reality',    note: 'VR portal',               color: '#22c55e' },
+              ].map(item => (
+                <div key={item.name} className="psb-live-row" style={{marginBottom:4}}>
+                  <div className="psb-live-dot" style={{background:item.color}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:10.5,fontWeight:600}}>{item.name}</div>
+                    <div style={{fontSize:9,color:'rgba(255,255,255,0.35)'}}>{item.note}</div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Recovery Guide ── */}
+            <motion.div className="psb-card psb-accent-amber"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.17 }}>
+              <div className="psb-title"><AlertTriangle size={11} style={{color:'#f59e0b'}}/> Recovery Guide</div>
+              <div className="psb-rule">If You Remove Something Needed</div>
+              <p className="psb-info-text" style={{marginBottom:8}}>Use <strong style={{color:'#fff',fontFamily:'monospace'}}>winget</strong> in PowerShell to reinstall any removed app:</p>
+              <div style={{background:'rgba(0,0,0,0.3)',border:'1px solid #222',borderRadius:6,padding:'6px 8px',marginBottom:8}}>
+                <code style={{fontSize:9.5,color:'#22c55e',fontFamily:'monospace',lineHeight:1.6,display:'block'}}>
+                  winget install Microsoft.XboxApp<br/>
+                  winget install Cortana<br/>
+                  winget install XboxGamingOverlay
+                </code>
+              </div>
+              <div className="psb-rule">Other Options</div>
               <ul className="psb-tips">
-                <li><AlertTriangle size={10} style={{color:'#e03030',flexShrink:0}}/> <strong style={{color:'#e03030'}}>Permanent</strong> — app removal can't be undone</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Some apps return with Windows Updates</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> UI tweaks revert with an Explorer restart</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Select All wisely — review first</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Microsoft Store → Search → Reinstall</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Restore Point to undo all changes</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Some apps return with Windows Update</li>
               </ul>
             </motion.div>
 

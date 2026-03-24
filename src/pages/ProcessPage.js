@@ -252,32 +252,88 @@ export default function ProcessPage({ addToast }) {
               </motion.div>
             )}
 
-            {/* ── Safe Process Guide ── */}
+            {/* ── What Process Types Mean ── */}
             <motion.div className="psb-card"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
-              <div className="psb-title"><Lightbulb size={11} /> Process Guide</div>
-              <div className="psb-rule">Safe to Kill</div>
-              <div className="psb-tags" style={{marginBottom:10}}>
-                <span className="psb-tag amber">chrome</span>
-                <span className="psb-tag amber">msedge</span>
-                <span className="psb-tag amber">discord</span>
-                <span className="psb-tag amber">spotify</span>
-                <span className="psb-tag amber">teams</span>
-                <span className="psb-tag amber">steam</span>
-              </div>
-              <div className="psb-rule">Never Kill</div>
-              <div className="psb-tags" style={{marginBottom:10}}>
+              <div className="psb-title"><Info size={11} /> Process Type Guide</div>
+              {[
+                { label: 'svchost.exe',  color: '#e03030', risk: 'SYSTEM', what: 'Host for Windows services. Multiple instances are normal. Never end — will crash Windows.' },
+                { label: 'csrss.exe',   color: '#e03030', risk: 'SYSTEM', what: 'Client/Server Runtime. Handles Win32 console and GUI shutdown. Critical — do not end.' },
+                { label: 'lsass.exe',   color: '#e03030', risk: 'SYSTEM', what: 'Local Security Authority. Handles logins and security policies. Critical — never kill.' },
+                { label: 'chrome.exe',  color: '#f59e0b', risk: 'USER',   what: 'Google Chrome. Spawns multiple processes per tab. Safe to end if browser is closed.' },
+                { label: 'discord.exe', color: '#22c55e', risk: 'USER',   what: 'Discord client. Can be ended to free ~150 MB RAM. Relaunch manually when needed.' },
+                { label: 'msedge.exe',  color: '#f59e0b', risk: 'USER',   what: 'Microsoft Edge. Like Chrome, spawns many processes. Safe to end if not in use.' },
+              ].map((p, i, arr) => (
+                <div key={p.label} style={{marginBottom: i<arr.length-1?9:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:p.color,flexShrink:0}}/>
+                    <span style={{fontSize:10,fontWeight:700,fontFamily:'monospace'}}>{p.label}</span>
+                    <span style={{marginLeft:'auto',fontSize:8,fontWeight:700,padding:'1px 5px',borderRadius:3,
+                      background:p.risk==='SYSTEM'?'rgba(224,48,48,0.12)':'rgba(34,197,94,0.1)',
+                      color:p.risk==='SYSTEM'?'#e03030':'#22c55e'}}>{p.risk}</span>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{p.what}</p>
+                  {i<arr.length-1 && <div className="psb-divider" style={{marginTop:9}}/>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── RAM Pressure Guide ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+              <div className="psb-title"><MemoryStick size={11} /> RAM Pressure Levels</div>
+              {[
+                { label: 'Normal  < 50%',   color: '#22c55e', pct: 40,  what: 'Plenty of free memory. System running smoothly. No action needed.' },
+                { label: 'Moderate 50–75%', color: '#f59e0b', pct: 65,  what: 'Getting full. Consider closing unused browser tabs and background apps.' },
+                { label: 'High  75–90%',    color: '#f97316', pct: 82,  what: 'System may stutter. Kill chrome/discord/spotify to free significant RAM.' },
+                { label: 'Critical > 90%',  color: '#e03030', pct: 95,  what: 'Windows starts using page file. Severe slowdowns. Close everything non-essential.' },
+              ].map((r, i, arr) => (
+                <div key={r.label} style={{marginBottom: i<arr.length-1?9:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:r.color,flexShrink:0}}/>
+                    <span style={{fontSize:10,fontWeight:700}}>{r.label}</span>
+                    <div style={{flex:1,height:3,borderRadius:2,background:'rgba(255,255,255,0.05)',marginLeft:4}}>
+                      <div style={{width:`${r.pct}%`,height:'100%',borderRadius:2,background:r.color}}/>
+                    </div>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{r.what}</p>
+                  {i<arr.length-1 && <div className="psb-divider" style={{marginTop:9}}/>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Safe & Never Kill ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.17 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Kill Reference</div>
+              <div className="psb-rule" style={{color:'#22c55e'}}>Safe to End Task</div>
+              {[
+                { name: 'chrome / msedge',  save: '100–500+ MB', note: 'Close tabs first' },
+                { name: 'discord',           save: '~150 MB',     note: 'Relaunch when needed' },
+                { name: 'spotify',           save: '~200 MB',     note: 'Music pauses' },
+                { name: 'teams',             save: '~300 MB',     note: 'If not in a meeting' },
+                { name: 'steam',             save: '~100 MB',     note: 'Games still run' },
+                { name: 'onedrive',          save: '~80 MB',      note: 'Sync stops temporarily' },
+              ].map(item => (
+                <div key={item.name} className="psb-live-row" style={{marginBottom:4}}>
+                  <div className="psb-live-dot" style={{background:'#22c55e'}}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:10,fontWeight:600,fontFamily:'monospace'}}>{item.name}</div>
+                    <div style={{fontSize:9,color:'rgba(255,255,255,0.35)'}}>{item.note}</div>
+                  </div>
+                  <span style={{fontSize:9,fontWeight:700,color:'#22c55e',flexShrink:0}}>{item.save}</span>
+                </div>
+              ))}
+              <div className="psb-rule" style={{color:'#e03030',marginTop:8}}>Never End</div>
+              <div className="psb-tags">
                 <span className="psb-tag red">svchost</span>
                 <span className="psb-tag red">System</span>
                 <span className="psb-tag red">csrss</span>
                 <span className="psb-tag red">lsass</span>
                 <span className="psb-tag red">winlogon</span>
+                <span className="psb-tag red">smss</span>
               </div>
-              <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Close browser tabs before killing chrome</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Search by name to find any process fast</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Killing svchost can crash Windows</li>
-              </ul>
+              <p className="psb-info-text" style={{marginTop:6}}>Killing any of these will cause an immediate BSOD or forced reboot.</p>
             </motion.div>
 
           </>);

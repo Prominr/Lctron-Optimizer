@@ -294,15 +294,84 @@ export default function RestorePage({ addToast, setActivePage }) {
                 </div>
               </div>
 
+              {/* ── When to Create Points ── */}
+              <div className="rsb-card">
+                <div className="rsb-card-title"><Info size={12} /> When to Create Points</div>
+                <div className="psb-rule">Always Create Before</div>
+                {[
+                  { label: 'Running debloat tools',       color: '#e03030', urgent: true },
+                  { label: 'Applying new power tweaks',   color: '#f59e0b', urgent: true },
+                  { label: 'Changing registry settings',  color: '#f59e0b', urgent: true },
+                  { label: 'Installing new drivers',      color: '#f59e0b', urgent: false },
+                  { label: 'Running network scripts',     color: '#06b6d4', urgent: false },
+                  { label: 'Major Windows update',        color: '#a78bfa', urgent: false },
+                ].map(item => (
+                  <div key={item.label} className="psb-live-row" style={{marginBottom:4}}>
+                    <div className="psb-live-dot" style={{background:item.color}}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:10.5,fontWeight:600}}>{item.label}</div>
+                    </div>
+                    {item.urgent && <span style={{fontSize:8,fontWeight:700,padding:'1px 4px',borderRadius:3,background:'rgba(224,48,48,0.12)',color:'#e03030',flexShrink:0}}>HIGH</span>}
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Naming Guide ── */}
+              <div className="rsb-card">
+                <div className="rsb-card-title"><Lightbulb size={12} /> Point Naming Guide</div>
+                <div className="psb-rule">Good Names</div>
+                <div style={{background:'rgba(0,0,0,0.3)',border:'1px solid #222',borderRadius:6,padding:'7px 9px',marginBottom:8}}>
+                  <code style={{fontSize:9.5,color:'#22c55e',fontFamily:'monospace',lineHeight:1.7,display:'block'}}>
+                    Before Debloat - Mar 24<br/>
+                    Pre Network Scripts 3/24<br/>
+                    Clean Install Baseline<br/>
+                    Before Power Plan Tweaks
+                  </code>
+                </div>
+                <ul className="psb-tips">
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Include date so you can identify age</li>
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Describe what you're about to do</li>
+                  <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Avoid generic names like "Restore Point 1"</li>
+                </ul>
+              </div>
+
+              {/* ── How to Restore ── */}
+              <div className="rsb-card">
+                <div className="rsb-card-title"><RotateCcw size={12} /> How to Restore</div>
+                <div className="psb-rule">Step by Step</div>
+                <div className="psb-timeline">
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#22c55e'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Save all open work</div><div className="psb-tl-sub">Close documents, browsers, apps</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#06b6d4'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Select restore point</div><div className="psb-tl-sub">Pick one from the list below</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#a78bfa'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Click Restore</div><div className="psb-tl-sub">Confirm the dialog</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#f59e0b'}}/><div className="psb-tl-line"/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Wait for reboot</div><div className="psb-tl-sub">Takes 3–10 min, auto-restarts</div></div>
+                  </div>
+                  <div className="psb-tl-item">
+                    <div className="psb-tl-left"><div className="psb-tl-dot" style={{borderColor:'#22c55e'}}/></div>
+                    <div className="psb-tl-body"><div className="psb-tl-title">Verify restoration</div><div className="psb-tl-sub">Check Windows confirms success</div></div>
+                  </div>
+                </div>
+              </div>
+
               {/* ── Best Practices ── */}
               <div className="rsb-card">
                 <div className="rsb-card-title"><Lightbulb size={12} /> Best Practices</div>
                 <ul className="psb-tips">
                   <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Create a point <em>before</em> any major tweak</li>
-                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use a descriptive name with the date</li>
                   <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Keep 2–3 recent points as a safety net</li>
-                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Save all open work before restoring</li>
-                  <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Restoring takes minutes &amp; needs a reboot</li>
+                  <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Delete old points to free disk space</li>
+                  <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Restore won't recover deleted personal files</li>
+                  <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> If restore fails, try an older point</li>
                 </ul>
               </div>
 

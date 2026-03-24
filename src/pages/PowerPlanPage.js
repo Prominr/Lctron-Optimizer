@@ -418,16 +418,86 @@ export default function PowerPlanPage({ addToast }) {
               </div>
             </motion.div>
 
-            {/* ── Tips ── */}
-            <motion.div className="psb-card psb-accent-amber"
+            {/* ── What Each Tweak Does ── */}
+            <motion.div className="psb-card"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.13 }}>
-              <div className="psb-title"><Lightbulb size={11} /> Tips &amp; Warnings</div>
+              <div className="psb-title"><Info size={11} /> What Each Tweak Does</div>
+              {[
+                { label: 'Core Parking Off', color: '#e03030', what: 'Prevents Windows from parking (sleeping) CPU cores. All cores stay active = lower input latency.' },
+                { label: 'Timer Resolution', color: '#f59e0b', what: 'Sets system timer to 0.5ms instead of default 15.6ms. Smoother frame pacing and input timing.' },
+                { label: 'CPU Min State 100%', color: '#a78bfa', what: 'Forces CPU to stay at max frequency, never downclocking. Eliminates frequency ramp-up lag.' },
+                { label: 'Power Throttle Off', color: '#06b6d4', what: 'Disables EcoQos and Power Throttling on foreground processes for maximum CPU frequency.' },
+                { label: 'Interrupt Affinity', color: '#22c55e', what: 'Pins network/USB hardware interrupts to specific cores to reduce IRQ contention.' },
+              ].map((t, i, arr) => (
+                <div key={t.label} style={{marginBottom: i<arr.length-1?9:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:t.color,flexShrink:0}}/>
+                    <span style={{fontSize:10.5,fontWeight:700}}>{t.label}</span>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{t.what}</p>
+                  {i<arr.length-1 && <div className="psb-divider" style={{marginTop:9}}/>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Desktop vs Laptop ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+              <div className="psb-title"><Info size={11} /> Desktop vs Laptop</div>
+              <div className="psb-rule" style={{color:'#22c55e'}}>Desktop (Best)</div>
+              <ul className="psb-tips" style={{marginBottom:8}}>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Lctron Ultimate + all tweaks</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Core Parking off is very safe on desktops</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Apply All gives best gaming performance</li>
+              </ul>
+              <div className="psb-rule" style={{color:'#f59e0b'}}>Laptop</div>
               <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Apply All for one-click max perf</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Core Parking off = lower input latency</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Timer Res. tweak helps frame pacing</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Lctron plan increases heat output</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Don't use Lctron on battery laptops</li>
+                <li><CheckCircle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Use High Performance when plugged in</li>
+                <li><AlertTriangle size={10} style={{color:'#e03030',flexShrink:0}}/> Avoid Lctron plan on battery</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Monitor temps — laptops heat faster</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Balanced plan = better battery life</li>
+              </ul>
+            </motion.div>
+
+            {/* ── Temperature Monitoring ── */}
+            <motion.div className="psb-card psb-accent-amber"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.17 }}>
+              <div className="psb-title"><AlertTriangle size={11} style={{color:'#f59e0b'}}/> Temperature Guide</div>
+              <div className="psb-rule">Safe Ranges</div>
+              {[
+                { label: 'CPU Idle',     val: '< 45°C',  color: '#22c55e', pct: 30 },
+                { label: 'CPU Gaming',   val: '< 85°C',  color: '#f59e0b', pct: 65 },
+                { label: 'CPU Danger',   val: '> 95°C',  color: '#e03030', pct: 90 },
+                { label: 'GPU Gaming',   val: '< 83°C',  color: '#f59e0b', pct: 60 },
+              ].map(t => (
+                <div key={t.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{t.label}</span>
+                    <span className="psb-bar-val" style={{color:t.color}}>{t.val}</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{width:`${t.pct}%`,background:t.color}}/>
+                  </div>
+                </div>
+              ))}
+              <p className="psb-info-text" style={{marginTop:8}}>If your CPU hits &gt;90°C consistently, revert tweaks and check your cooling.</p>
+            </motion.div>
+
+            {/* ── Tips & Warnings ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.19 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Tips &amp; Recovery</div>
+              <div className="psb-rule">Best Practice</div>
+              <ul className="psb-tips">
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Use Apply All for one-click max performance</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Timer resolution has biggest latency effect</li>
+                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Core Parking off = noticeable input lag drop</li>
+              </ul>
+              <div className="psb-rule" style={{color:'#e03030'}}>If Something Feels Wrong</div>
+              <ul className="psb-tips">
+                <li><AlertTriangle size={10} style={{color:'#e03030',flexShrink:0}}/> Switch back to Balanced plan to revert</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Disable tweaks individually if unstable</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Reboot after major plan changes</li>
               </ul>
             </motion.div>
 

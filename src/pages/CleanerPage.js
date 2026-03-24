@@ -281,26 +281,80 @@ export default function CleanerPage({ addToast }) {
               </div>
             </motion.div>
 
-            {/* ── Schedule & Tips ── */}
+            {/* ── What Each Category Removes ── */}
             <motion.div className="psb-card"
               initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.10 }}>
-              <div className="psb-title"><Lightbulb size={11} /> Tips &amp; Schedule</div>
-              <div className="psb-rule">Best Practices</div>
-              <ul className="psb-tips">
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Run weekly to maintain system hygiene</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Schedule for auto-clean at every startup</li>
-                <li><CheckCircle size={10} style={{color:'#22c55e',flexShrink:0}}/> Temp folder is always 100% safe</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Read warnings before enabling those items</li>
-                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Registry clean: back up first if unsure</li>
-              </ul>
+              <div className="psb-title"><Info size={11} /> What Gets Removed</div>
+              {[
+                { label: 'Temp & Cache',  color: '#f59e0b', safe: true,  what: 'Windows temp files in %TEMP% and system32\\temp. Usually 0.5–5 GB. Always safe.' },
+                { label: 'Thumbnails',    color: '#06b6d4', safe: true,  what: 'Thumbs.db and explorer thumbnail cache. Rebuilds automatically when folders are opened.' },
+                { label: 'DNS Cache',     color: '#22c55e', safe: true,  what: 'Cached DNS lookups. Clears stale entries. No downside — resolves fresh after clean.' },
+                { label: 'Recycle Bin',   color: '#888',    safe: true,  what: 'Permanently deletes files already in Recycle Bin. Check bin contents before running.' },
+                { label: 'Registry',      color: '#e03030', safe: false, what: 'Removes orphaned registry keys from uninstalled apps. Low risk but back up first.' },
+                { label: 'Telemetry',     color: '#a78bfa', safe: false, what: 'Clears Microsoft diagnostic data logs. Does not stop telemetry — just removes stored data.' },
+              ].map((c, i, arr) => (
+                <div key={c.label} style={{marginBottom: i<arr.length-1?9:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:3}}>
+                    <div style={{width:6,height:6,borderRadius:'50%',background:c.color,flexShrink:0}}/>
+                    <span style={{fontSize:10.5,fontWeight:700}}>{c.label}</span>
+                    <span style={{marginLeft:'auto',fontSize:8,fontWeight:700,padding:'1px 5px',borderRadius:3,
+                      background:c.safe?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',
+                      color:c.safe?'#22c55e':'#f59e0b'}}>{c.safe?'SAFE':'CAUTION'}</span>
+                  </div>
+                  <p style={{margin:0,fontSize:10,color:'rgba(255,255,255,0.38)',lineHeight:1.45,paddingLeft:12}}>{c.what}</p>
+                  {i<arr.length-1 && <div className="psb-divider" style={{marginTop:9}}/>}
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Typical Space Savings ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.12 }}>
+              <div className="psb-title"><BarChart2 size={11} /> Typical Space Savings</div>
+              <div className="psb-rule">Avg Per Category</div>
+              {[
+                { label: 'Temp & Cache',  val: '0.5–5 GB',  pct: 85, color: '#f59e0b' },
+                { label: 'Recycle Bin',   val: 'Varies',    pct: 50, color: '#888' },
+                { label: 'Thumbnails',    val: '50–500 MB', pct: 40, color: '#06b6d4' },
+                { label: 'Registry',      val: '~2 MB',     pct: 10, color: '#e03030' },
+                { label: 'Telemetry',     val: '~100 MB',   pct: 25, color: '#a78bfa' },
+              ].map(s => (
+                <div key={s.label} className="psb-bar-row">
+                  <div className="psb-bar-header">
+                    <span className="psb-bar-label">{s.label}</span>
+                    <span className="psb-bar-val" style={{color:s.color}}>{s.val}</span>
+                  </div>
+                  <div className="psb-bar-track">
+                    <div className="psb-bar-fill" style={{width:`${s.pct}%`,background:s.color}}/>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* ── Schedule Guide ── */}
+            <motion.div className="psb-card"
+              initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.14 }}>
+              <div className="psb-title"><Lightbulb size={11} /> Schedule &amp; Tips</div>
+              <div className="psb-rule">Auto-Schedule</div>
+              <p className="psb-info-text" style={{marginBottom:8}}>Enable the schedule toggle to auto-run selected tasks at Windows startup. Runs silently in the background — no prompts.</p>
+              <div className="psb-rule">Recommended Frequency</div>
+              {[
+                { label: 'Temp & Cache',  freq: 'Weekly',    color: '#22c55e' },
+                { label: 'Thumbnails',    freq: 'Monthly',   color: '#06b6d4' },
+                { label: 'Registry',      freq: 'Monthly',   color: '#f59e0b' },
+                { label: 'Recycle Bin',   freq: 'As needed', color: '#888' },
+              ].map(r => (
+                <div key={r.label} className="psb-live-row" style={{marginBottom:4}}>
+                  <div className="psb-live-dot" style={{background:r.color}}/>
+                  <span className="psb-live-name">{r.label}</span>
+                  <span className="psb-live-val" style={{color:r.color}}>{r.freq}</span>
+                </div>
+              ))}
               <div className="psb-divider"/>
-              <div className="psb-rule">Safety Levels</div>
-              <div className="psb-tags">
-                <span className="psb-tag green">Always Safe</span>
-                <span className="psb-tag amber">Caution</span>
-                <span className="psb-tag blue">Cache</span>
-                <span className="psb-tag red">Registry</span>
-              </div>
+              <ul className="psb-tips">
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Check Recycle Bin before running</li>
+                <li><AlertTriangle size={10} style={{color:'#f59e0b',flexShrink:0}}/> Registry: create a restore point first</li>
+              </ul>
             </motion.div>
 
           </>);
