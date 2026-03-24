@@ -4,9 +4,9 @@ param(
 
 $owner = "Prominr"
 $repo  = "Lctron-Optimizer"
-$tag   = "v1.7.34"
-$name  = "Lctron Optimizer v1.7.34"
-$body  = "## Lctron Optimizer v1.7.34`n`n### Changes`n- **Themes Pro-gated**: All themes except Crimson Red (default) now require Premium`n- **Wallpapers Pro-gated**: All animated wallpapers except None now require Premium`n- **Particles Pro-gated**: All particle effects except None now require Premium`n- Free users see lock badges on locked items with a purple notice banner + Upgrade link`n- Clicking any locked appearance option redirects to the Upgrade page`n"
+$tag   = "v1.7.35"
+$name  = "Lctron Optimizer v1.7.35"
+$body  = "## Lctron Optimizer v1.7.35`n`n### Changes`n- **Themes Pro-gated**: All themes except Crimson Red (default) now require Premium`n- **Wallpapers Pro-gated**: All animated wallpapers except None now require Premium`n- **Particles Pro-gated**: All particle effects except None now require Premium`n- Free users see lock badges on locked items with a purple notice banner + Upgrade link`n- Clicking any locked appearance option redirects to the Upgrade page`n"
 if (-not $Token) {
     Write-Error "GH_TOKEN not set. Pass -Token or set GH_TOKEN env var."
     exit 1

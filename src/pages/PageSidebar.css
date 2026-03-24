@@ -24,11 +24,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  align-self: stretch;
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.08) transparent;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
   padding-bottom: 16px;
 }
 

@@ -229,6 +229,7 @@ export default function DebloatPage({ addToast }) {
 
       <div className="page-body">
         <div className="page-main">
+        <div className="debloat-scroll">
           <div className="debloat-categories">
         {CATEGORIES.map(cat => {
           const catIds = cat.apps.map(a => a.id);
@@ -341,6 +342,7 @@ export default function DebloatPage({ addToast }) {
           </AnimatePresence>
         </div>
       </div>
+      </div>{/* debloat-scroll */}
       </div>{/* page-main */}
 
       <aside className="page-sidebar">

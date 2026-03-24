@@ -92,6 +92,7 @@ export default function StartupPage({ addToast }) {
 
       <div className="page-body" style={{alignItems:'flex-start'}}>
       <div className="page-main">
+      <div className="startup-scroll">
       {loading ? (
         <div className="startup-loading"><div className="startup-spinner" /> Scanning startup entries...</div>
       ) : (
@@ -142,6 +143,7 @@ export default function StartupPage({ addToast }) {
           </AnimatePresence>
         </div>
       )}
+      </div>{/* startup-scroll */}
       </div>{/* page-main */}
 
       <aside className="page-sidebar">

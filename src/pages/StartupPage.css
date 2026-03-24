@@ -2,8 +2,17 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
+  padding: 0 24px 0;
+}
+
+.startup-scroll {
+  flex: 1;
   overflow-y: auto;
-  padding: 0 24px 24px;
+  min-height: 0;
+  padding-bottom: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
 
 .startup-stats {
