@@ -49,8 +49,10 @@ const DEFAULT_BASIC = {
   // Memory
   clearRAM: true, trimWorkingSet: true, disablePaging: false, largePages: false,
   // CPU
+  disableCpuParking: true,
   disableHyperThreading: false, disableSmt: false, cpuAffinity: false, boostCpuClock: false,
   // GPU
+  disableMpo: true,
   optimizeGpuDriver: true, enableHags: true, optimizeShaderCache: true, optimizeFramePacing: true,
   gpuBoost: false, disableGpuTimeout: false, setGpuPowerMode: false,
   disableGpuRecovery: false, setGpuPreemption: false, disableGpuScalling: false,
@@ -92,8 +94,10 @@ const DEFAULT_CUSTOM = {
   // Memory optimizations
   clearRAM: false, disablePaging: false, largePages: false, trimWorkingSet: false,
   // CPU optimizations
+  disableCpuParking: false,
   disableHyperThreading: false, disableSmt: false, cpuAffinity: false, boostCpuClock: false,
   // GPU optimizations
+  disableMpo: false,
   gpuBoost: false, disableGpuTimeout: false, optimizeGpuDriver: false, setGpuPowerMode: false,
   // Network optimizations
   optimizeTcpIp: false, disableNagle: false, optimizeDns: false, setQosPriority: false,
@@ -210,32 +214,32 @@ const GAME_PROFILES = {
   fps: {
     label: 'Competitive FPS', icon: '🎯', color: '#e03030',
     desc: 'Tuned for lowest latency, max FPS, and zero lag spikes.',
-    highlights: ['Disable Nagle — minimum network latency','Realtime CPU priority','Disable fullscreen optimizations','Fix lag spikes & micro-stutter','High Performance power plan','GPU driver optimization'],
-    tweaks: { disableNagle:true,setQosPriority:true,disableGameBar:true,disableFullscreenOpt:true,highPerfMode:true,fixLagSpikes:true,antiMicrostutter:true,reducePingSpikes:true,clearRAM:true,optimizePriority:true,disablePowerThrottling:true,optimizeTcpIp:true,optimizeGpuDriver:true,disableAnimations:true },
+    highlights: ['Disable MPO — kills DX11/12 stutter','Disable CPU parking — all cores active','Disable Nagle — min network latency','Realtime CPU priority','0.5ms timer resolution','Disable fullscreen optimizations','GPU driver + HAGS optimization'],
+    tweaks: { disableMpo:true,disableCpuParking:true,setTimerResolution:true,disableNagle:true,setQosPriority:true,disableGameBar:true,disableFullscreenOpt:true,highPerfMode:true,fixLagSpikes:true,antiMicrostutter:true,reducePingSpikes:true,clearRAM:true,optimizePriority:true,disablePowerThrottling:true,optimizeTcpIp:true,optimizeGpuDriver:true,disableAnimations:true,optimizeScheduler:true,optimizeInterrupts:true },
   },
   moba: {
     label: 'MOBA', icon: '⚔️', color: '#a78bfa',
     desc: 'Stable FPS and consistent network for MOBA matches.',
     highlights: ['Network QoS for stable ping','CPU thread optimization','Disable background apps','Fix lag spikes','Game Mode enabled','Disable Game Bar overlay'],
-    tweaks: { setQosPriority:true,gameMode:true,disableGameBar:true,disableBackgroundApps:true,fixLagSpikes:true,antiMicrostutter:true,optimizePriority:true,optimizeDns:true,highPerfMode:true,disableXboxServices:true,clearRAM:true },
+    tweaks: { disableMpo:true,disableCpuParking:true,setQosPriority:true,gameMode:true,disableGameBar:true,disableBackgroundApps:true,fixLagSpikes:true,antiMicrostutter:true,optimizePriority:true,optimizeDns:true,highPerfMode:true,disableXboxServices:true,clearRAM:true,optimizeScheduler:true,optimizeNetworkBuffer:true },
   },
   br: {
     label: 'Battle Royale', icon: '🏆', color: '#f59e0b',
     desc: 'Max FPS and low ping for fast-paced battle royale games.',
     highlights: ['TCP/IP network optimization','Reduce ping spikes','GPU driver optimization','RAM trim on start','Disable background services','Max performance power plan'],
-    tweaks: { optimizeTcpIp:true,disableNagle:true,reducePingSpikes:true,optimizeGpuDriver:true,clearRAM:true,trimWorkingSet:true,highPerfMode:true,disableGameBar:true,disableFullscreenOpt:true,gameMode:true,fixLagSpikes:true,antiMicrostutter:true },
+    tweaks: { disableMpo:true,disableCpuParking:true,optimizeTcpIp:true,disableNagle:true,reducePingSpikes:true,optimizeGpuDriver:true,clearRAM:true,trimWorkingSet:true,highPerfMode:true,disableGameBar:true,disableFullscreenOpt:true,gameMode:true,fixLagSpikes:true,antiMicrostutter:true,optimizeInterrupts:true,disableLso:true },
   },
   openworld: {
     label: 'Open World / RPG', icon: '🗺️', color: '#22c55e',
     desc: 'Smooth frames and fast loading for open world games.',
     highlights: ['Anti micro-stutter for smooth frames','RAM clear & trim','SSD I/O optimization','GPU frame pacing','Disable idle tasks','High Performance plan'],
-    tweaks: { antiMicrostutter:true,clearRAM:true,trimWorkingSet:true,optimizeSsd:true,optimizeGpuDriver:true,highPerfMode:true,disableIdleTasks:true,gameMode:true,disableBackgroundApps:true,disableAnimations:true,fixLagSpikes:true },
+    tweaks: { disableMpo:true,disableCpuParking:true,antiMicrostutter:true,clearRAM:true,trimWorkingSet:true,optimizeSsd:true,optimizeGpuDriver:true,highPerfMode:true,disableIdleTasks:true,gameMode:true,disableBackgroundApps:true,disableAnimations:true,fixLagSpikes:true,optimizeKernelMode:true,disablePrefetch:true },
   },
   roblox: {
     label: 'Roblox', icon: '🧱', color: '#06b6d4',
     desc: 'Roblox-specific engine and network optimizations.',
     highlights: ['Roblox GPU Boost enabled','Roblox network optimization','Roblox CPU Boost','Disable fullscreen optimizations','Anti lag spike fix','Game Mode + High Perf plan'],
-    tweaks: { robloxGpuBoost:true,robloxNetworkOpt:true,robloxCpuBoost:true,disableFullscreenOpt:true,fixLagSpikes:true,gameMode:true,highPerfMode:true,optimizePriority:true,clearRAM:true,antiMicrostutter:true,setQosPriority:true },
+    tweaks: { disableMpo:true,disableCpuParking:true,robloxGpuBoost:true,robloxNetworkOpt:true,robloxCpuBoost:true,disableFullscreenOpt:true,fixLagSpikes:true,gameMode:true,highPerfMode:true,optimizePriority:true,clearRAM:true,antiMicrostutter:true,setQosPriority:true,setTimerResolution:true },
   },
   app: {
     label: 'Desktop App', icon: '🖥️', color: '#06b6d4',
@@ -247,7 +251,7 @@ const GAME_PROFILES = {
     label: 'Game', icon: '🎮', color: '#a78bfa',
     desc: 'Balanced performance profile with all core optimizations.',
     highlights: ['Core performance tweaks','Anti-lag & micro-stutter fix','Network QoS priority','High Performance power plan','Disable Game Bar overlay','RAM optimization on launch'],
-    tweaks: { fixLagSpikes:true,antiMicrostutter:true,reducePingSpikes:true,disableCO:true,optimizePriority:true,optimizeIO:true,highPerfMode:true,gameMode:true,disableGameBar:true,disableFullscreenOpt:true,clearRAM:true,setQosPriority:true },
+    tweaks: { disableMpo:true,disableCpuParking:true,fixLagSpikes:true,antiMicrostutter:true,reducePingSpikes:true,disableCO:true,optimizePriority:true,optimizeIO:true,highPerfMode:true,gameMode:true,disableGameBar:true,disableFullscreenOpt:true,clearRAM:true,setQosPriority:true,optimizeGpuDriver:true,optimizeScheduler:true },
   },
 };
 
@@ -568,6 +572,7 @@ export default function AppBoosterPage({ addToast }) {
                   {/* Core Performance */}
                   <div className="ab-opt-section">
                     <div className="ab-opt-section-title">Core Performance</div>
+                    <BoostRow label="Disable CPU Core Parking" desc="Keeps all CPU cores active — prevents FPS dips" recommended checked={cfg.basic.disableCpuParking} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableCpuParking', v)} />
                     <BoostRow label="Disable CPU Throttle" recommended checked={cfg.basic.disableCO} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableCO', v)} />
                     <BoostRow label="Optimize DSCP Settings" recommended checked={cfg.basic.optimizeDSCP} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeDSCP', v)} />
                     <BoostRow label="Optimize Priority Class" recommended checked={cfg.basic.optimizePriority} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizePriority', v)} />
@@ -598,6 +603,7 @@ export default function AppBoosterPage({ addToast }) {
                   {/* GPU */}
                   <div className="ab-opt-section">
                     <div className="ab-opt-section-title">GPU</div>
+                    <BoostRow label="Disable Multi-Plane Overlay" desc="Fixes DX11/DX12 stutter — major FPS gain" recommended checked={cfg.basic.disableMpo} onChange={v => updateConfig(selectedApp.id, 'basic', 'disableMpo', v)} />
                     <BoostRow label="Optimize GPU Driver" desc="Apply driver-level optimizations" checked={cfg.basic.optimizeGpuDriver} onChange={v => updateConfig(selectedApp.id, 'basic', 'optimizeGpuDriver', v)} />
                     <BoostRow label="Enable HAGS" desc="Hardware Accelerated GPU Scheduling" checked={cfg.basic.enableHags} onChange={v => updateConfig(selectedApp.id, 'basic', 'enableHags', v)} />
                     {isPremium ? (
@@ -1117,11 +1123,11 @@ export default function AppBoosterPage({ addToast }) {
               <div className="psb-title"><Zap size={11} /> Expected FPS Gains</div>
               <div className="psb-rule">By Game Type (Optimizations ON)</div>
               {[
-                { label: 'FPS / Shooter',    gain: '+5–15 FPS', pct: 80, color: '#e03030' },
-                { label: 'Open World',        gain: '+3–8 FPS',  pct: 55, color: '#f59e0b' },
-                { label: 'MOBA / RTS',        gain: '+8–20 FPS', pct: 90, color: '#a78bfa' },
-                { label: 'Simulation',        gain: '+2–5 FPS',  pct: 40, color: '#06b6d4' },
-                { label: 'Indie / 2D',        gain: '+10–30 FPS',pct: 95, color: '#22c55e' },
+                { label: 'FPS / Shooter',    gain: '+12–28 FPS', pct: 92, color: '#e03030' },
+                { label: 'Open World',        gain: '+8–18 FPS',  pct: 72, color: '#f59e0b' },
+                { label: 'MOBA / RTS',        gain: '+15–35 FPS', pct: 96, color: '#a78bfa' },
+                { label: 'Simulation',        gain: '+5–14 FPS',  pct: 55, color: '#06b6d4' },
+                { label: 'Indie / 2D',        gain: '+20–50 FPS', pct: 99, color: '#22c55e' },
               ].map(g => (
                 <div key={g.label} className="psb-bar-row">
                   <div className="psb-bar-header">

@@ -1158,6 +1158,7 @@ ipcMain.handle('boost-app-advanced', async (event, exePath, options) => {
       optimizePriority = true,
       optimizeIO = true,
       clearRAM = false,
+      trimWorkingSet = false,
       disableFullscreenOptimizations = false,
       disableHighDPI = false,
       robloxGpuBoost = false,
@@ -1167,9 +1168,48 @@ ipcMain.handle('boost-app-advanced', async (event, exePath, options) => {
       fixLagSpikes = true,
       antiMicrostutter = true,
       reducePingSpikes = true,
-      // Network
+      // CPU / Scheduler
+      disableCpuParking = true,
+      setTimerResolution = false,
+      disableHpet = false,
+      disableCStates = false,
+      optimizeScheduler = false,
+      optimizeKernelMode = false,
+      disableIdleTasks = false,
+      disableStartupDelay = false,
+      optimizeInterrupts = false,
+      // GPU advanced
+      disableMpo = false,
+      optimizeGpuDriver = false,
+      optimizeShaderCache = false,
+      optimizeFramePacing = false,
+      optimizeRegistry = false,
+      // Network advanced
       disableNagle = false,
       optimizeTcpIp = false,
+      optimizeDns = false,
+      setQosPriority = false,
+      optimizeTcpWindow = false,
+      disableTcpAutoTuning = false,
+      optimizeNetworkBuffer = false,
+      setDnsCache = false,
+      disableLso = false,
+      optimizeAckFrequency = false,
+      optimizeTcpStack = false,
+      // Storage
+      optimizeSsd = false,
+      trimDisks = false,
+      disablePrefetch = false,
+      // Windows
+      disableFullscreenOpt = false,
+      disableAnimations = false,
+      disableTelemetry = false,
+      disableDiagnostics = false,
+      disableSearchIndexing = false,
+      disableSysMain = false,
+      // Audio
+      optimizeAudio = false,
+      disableAudioEnhancements = false,
       // Game mode
       gameMode = false,
       highPerfMode = false,
@@ -1400,6 +1440,306 @@ public class NtIO { [DllImport("ntdll.dll")] public static extern int NtSetInfor
       $bgKey = "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\BackgroundAccessApplications"
       if (!(Test-Path $bgKey)) { New-Item -Path $bgKey -Force | Out-Null }
       Set-ItemProperty -Path $bgKey -Name "GlobalUserDisabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableCpuParking) {
+      script += `
+      $cpuGuid  = "54533251-82be-4824-96c1-47b60b740d00"
+      $parkGuid = "0cc5b647-c1df-4637-891a-dec35c318583"
+      try { powercfg /setacvalueindex SCHEME_CURRENT $cpuGuid $parkGuid 100 2>$null } catch {}
+      try { powercfg /setdcvalueindex SCHEME_CURRENT $cpuGuid $parkGuid 100 2>$null } catch {}
+      try { powercfg /apply 2>$null } catch {}
+      $parkRegKey = "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\$cpuGuid\\$parkGuid"
+      if (Test-Path $parkRegKey) {
+        Set-ItemProperty -Path $parkRegKey -Name "ValueMax" -Value 100 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $parkRegKey -Name "ValueMin" -Value 100 -Type DWord -Force -ErrorAction SilentlyContinue
+      }
+      `;
+    }
+
+    if (disableMpo) {
+      script += `
+      $dwmKey = "HKLM:\\SOFTWARE\\Microsoft\\Windows\\Dwm"
+      if (!(Test-Path $dwmKey)) { New-Item -Path $dwmKey -Force | Out-Null }
+      Set-ItemProperty -Path $dwmKey -Name "OverlayTestMode" -Value 5 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (setTimerResolution) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      try { bcdedit /set useplatformtick yes 2>$null } catch {}
+      `;
+    }
+
+    if (disableHpet) {
+      script += `
+      try { bcdedit /deletevalue useplatformclock 2>$null } catch {}
+      try { bcdedit /set disabledynamictick yes 2>$null } catch {}
+      `;
+    }
+
+    if (disableCStates) {
+      script += `
+      try { powercfg /setacvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 5d76a2ca-e8c0-402f-a133-2158492d58ad 0 2>$null } catch {}
+      try { powercfg /setdcvalueindex SCHEME_CURRENT 54533251-82be-4824-96c1-47b60b740d00 5d76a2ca-e8c0-402f-a133-2158492d58ad 0 2>$null } catch {}
+      `;
+    }
+
+    if (optimizeInterrupts) {
+      script += `
+      Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*InterruptModeration" -RegistryValue 0 -ErrorAction SilentlyContinue } catch {}
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*RSS"                -RegistryValue 1 -ErrorAction SilentlyContinue } catch {}
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*NumRssQueues"       -RegistryValue 4 -ErrorAction SilentlyContinue } catch {}
+      }
+      `;
+    }
+
+    if (disableSysMain) {
+      script += `
+      try { Stop-Service SysMain -Force -ErrorAction SilentlyContinue } catch {}
+      try { Set-Service  SysMain -StartupType Disabled -ErrorAction SilentlyContinue } catch {}
+      `;
+    }
+
+    if (disableTelemetry) {
+      script += `
+      try { Stop-Process -Name "diagtrack" -Force -ErrorAction SilentlyContinue } catch {}
+      try { Stop-Service DiagTrack -Force -ErrorAction SilentlyContinue } catch {}
+      Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection" -Name "AllowTelemetry" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableDiagnostics) {
+      script += `
+      try { Stop-Service DiagTrack -Force -ErrorAction SilentlyContinue } catch {}
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\DiagTrack" -Name "Start" -Value 4 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeGpuDriver) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" -Name "HwSchMode"            -Value 2  -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" -Name "DpiMapIommuContiguous" -Value 1  -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" -Name "TdrDelay"              -Value 60 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" -Name "TdrDdiDelay"           -Value 60 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeShaderCache) {
+      script += `
+      $nvidiaKey = "HKLM:\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak"
+      if (!(Test-Path $nvidiaKey)) { New-Item -Path $nvidiaKey -Force | Out-Null }
+      Set-ItemProperty -Path $nvidiaKey -Name "UseGlobalCacheDir" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers" -Name "TdrDelay" -Value 60 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeFramePacing) {
+      script += `
+      $gamesKey = "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games"
+      if (!(Test-Path $gamesKey)) { New-Item -Path $gamesKey -Force | Out-Null }
+      Set-ItemProperty -Path $gamesKey -Name "GPU Priority"        -Value 8       -Type DWord  -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $gamesKey -Name "Priority"            -Value 6       -Type DWord  -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $gamesKey -Name "Scheduling Category" -Value "High"  -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $gamesKey -Name "SFIO Priority"       -Value "High"  -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $gamesKey -Name "Affinity"            -Value 0       -Type DWord  -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $gamesKey -Name "Background Only"     -Value "False" -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $gamesKey -Name "Clock Rate"          -Value 10000   -Type DWord  -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableFullscreenOpt) {
+      script += `
+      $fsKey = "HKCU:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\AppCompatFlags\\Layers"
+      if (!(Test-Path $fsKey)) { New-Item -Path $fsKey -Force | Out-Null }
+      Set-ItemProperty -Path $fsKey -Name "${exePath}" -Value "~ DISABLEDXMAXIMIZEDWINDOWEDMODE" -Type String -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableAnimations) {
+      script += `
+      Set-ItemProperty -Path "HKCU:\\Control Panel\\Desktop"                                           -Name "MenuShowDelay"     -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKCU:\\Control Panel\\Desktop\\WindowMetrics"                            -Name "MinAnimate"        -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced" -Name "TaskbarAnimations" -Value 0   -Type DWord  -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeTcpWindow) {
+      script += `
+      try { netsh int tcp set global autotuninglevel=normal  2>$null } catch {}
+      try { netsh int tcp set global rss=enabled             2>$null } catch {}
+      try { netsh int tcp set global chimney=disabled        2>$null } catch {}
+      `;
+    }
+
+    if (disableTcpAutoTuning) {
+      script += `
+      try { netsh int tcp set global autotuninglevel=disabled 2>$null } catch {}
+      `;
+    }
+
+    if (optimizeNetworkBuffer) {
+      script += `
+      Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*ReceiveBuffers"  -RegistryValue 512 -ErrorAction SilentlyContinue } catch {}
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*TransmitBuffers" -RegistryValue 512 -ErrorAction SilentlyContinue } catch {}
+      }
+      `;
+    }
+
+    if (setDnsCache) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" -Name "MaxCacheSize"             -Value 4096 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" -Name "CacheHashTableBucketSize" -Value 64   -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters" -Name "MaxSOACacheEntryTtlLimit" -Value 300  -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableLso) {
+      script += `
+      Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*LsoV2IPv4" -RegistryValue 0 -ErrorAction SilentlyContinue } catch {}
+        try { Set-NetAdapterAdvancedProperty -Name $_.Name -RegistryKeyword "*LsoV2IPv6" -RegistryValue 0 -ErrorAction SilentlyContinue } catch {}
+        try { Disable-NetAdapterLso -Name $_.Name -ErrorAction SilentlyContinue } catch {}
+      }
+      `;
+    }
+
+    if (optimizeAckFrequency) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" -Name "TcpAckFrequency" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" -Name "TCPNoDelay"      -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" -Name "TcpDelAckTicks"  -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeTcpStack) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" -Name "EnablePMTUBHDetect"  -Value 0     -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" -Name "EnablePMTUDiscovery" -Value 1     -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters" -Name "TcpMaxSendFree"      -Value 65535 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeDns) {
+      script += `
+      try {
+        Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {
+          try { Set-DnsClientServerAddress -InterfaceIndex $_.InterfaceIndex -ServerAddresses ("8.8.8.8","8.8.4.4") -ErrorAction SilentlyContinue } catch {}
+        }
+      } catch {}
+      try { ipconfig /flushdns 2>$null } catch {}
+      `;
+    }
+
+    if (setQosPriority) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Psched" -Name "NonBestEffortLimit" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" -Name "NetworkThrottlingIndex" -Value 4294967295 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeSsd) {
+      script += `
+      try { fsutil behavior set disabledeletenotify 0 2>$null } catch {}
+      try { fsutil behavior set disable8dot3        1 2>$null } catch {}
+      try { fsutil behavior set disablelastaccess   1 2>$null } catch {}
+      try { fsutil behavior set mftzone             2 2>$null } catch {}
+      `;
+    }
+
+    if (trimDisks) {
+      script += `
+      try { fsutil behavior set disabledeletenotify 0 2>$null } catch {}
+      try {
+        Get-Volume | Where-Object { $_.DriveType -eq 'Fixed' -and $_.FileSystem -eq 'NTFS' } | ForEach-Object {
+          try { Optimize-Volume -DriveLetter $_.DriveLetter -ReTrim -ErrorAction SilentlyContinue } catch {}
+        }
+      } catch {}
+      `;
+    }
+
+    if (disablePrefetch) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters" -Name "EnablePrefetcher"    -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management\\PrefetchParameters" -Name "EnableBootPrefetcher" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (trimWorkingSet) {
+      script += `
+      Get-Process | Where-Object { $_.Name -notmatch "^(${procName}|System|Idle|lsass|winlogon|csrss|smss|wininit|dwm|svchost)$" } | ForEach-Object {
+        try { $_.MinWorkingSet = [IntPtr]::new(4096); $_.MaxWorkingSet = [IntPtr]::new(1024*1024) } catch {}
+      }
+      `;
+    }
+
+    if (optimizeScheduler) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 38 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "IRQ8Priority"            -Value 1  -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeKernelMode) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" -Name "LargeSystemCache"       -Value 0      -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" -Name "DisablePagingExecutive" -Value 1      -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" -Name "IoPageLockLimit"        -Value 983040 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableIdleTasks) {
+      script += `
+      try { Stop-ScheduledTask -TaskPath "\\Microsoft\\Windows\\TaskScheduler\\" -TaskName "Idle Maintenance" -ErrorAction SilentlyContinue } catch {}
+      try { Stop-ScheduledTask -TaskPath "\\Microsoft\\Windows\\Defrag\\"        -TaskName "ScheduledDefrag"  -ErrorAction SilentlyContinue } catch {}
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management" -Name "EnableSuperfetch" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableStartupDelay) {
+      script += `
+      $serKey = "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize"
+      if (!(Test-Path $serKey)) { New-Item -Path $serKey -Force | Out-Null }
+      Set-ItemProperty -Path $serKey -Name "StartupDelayInMSec" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableSearchIndexing) {
+      script += `
+      try { Stop-Service WSearch -Force -ErrorAction SilentlyContinue } catch {}
+      `;
+    }
+
+    if (optimizeAudio) {
+      script += `
+      $audioKey = "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Pro Audio"
+      if (!(Test-Path $audioKey)) { New-Item -Path $audioKey -Force | Out-Null }
+      Set-ItemProperty -Path $audioKey -Name "Scheduling Category" -Value "High"  -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $audioKey -Name "SFIO Priority"       -Value "High"  -Type String -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $audioKey -Name "Priority"            -Value 6       -Type DWord  -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $audioKey -Name "Clock Rate"          -Value 10000   -Type DWord  -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path $audioKey -Name "GPU Priority"        -Value 1       -Type DWord  -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (disableAudioEnhancements) {
+      script += `
+      $audioDevKey = "HKCU:\\Software\\Microsoft\\Multimedia\\Audio\\DeviceCriteria"
+      if (!(Test-Path $audioDevKey)) { New-Item -Path $audioDevKey -Force | Out-Null }
+      Set-ItemProperty -Path $audioDevKey -Name "DisableAllEnhancements" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;
+    }
+
+    if (optimizeRegistry) {
+      script += `
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "NtfsMemoryUsage"             -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "NtfsDisable8dot3NameCreation" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "NtfsDisableLastAccessUpdate"  -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
       `;
     }
 

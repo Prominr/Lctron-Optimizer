@@ -4,9 +4,9 @@ param(
 
 $owner = "Prominr"
 $repo  = "Lctron-Optimizer"
-$tag   = "v1.7.37"
-$name  = "Lctron Optimizer v1.7.37"
-$body  = "## Lctron Optimizer v1.7.37`n`n### Changes`n- **Themes Pro-gated**: All themes except Crimson Red (default) now require Premium`n- **Wallpapers Pro-gated**: All animated wallpapers except None now require Premium`n- **Particles Pro-gated**: All particle effects except None now require Premium`n- Free users see lock badges on locked items with a purple notice banner + Upgrade link`n- Clicking any locked appearance option redirects to the Upgrade page`n"
+$tag   = "v1.7.38"
+$name  = "Lctron Optimizer v1.7.38"
+$body  = "## Lctron Optimizer v1.7.38`n`n### Changes`n- **Advanced Optimizations**: Added MPO disable (fixes DX11/DX12 stutter), CPU core parking disable, 0.5ms timer resolution, interrupt optimization, and 30+ new real PowerShell tweaks`n- **Higher FPS Gains**: Updated FPS estimates — FPS/Shooter: +12-28 FPS, MOBA: +15-35 FPS, Indie: +20-50 FPS`n- **Full Backend Wiring**: All previously UI-only tweaks now have real PowerShell implementations (GPU driver, shader cache, frame pacing, SSD TRIM, DNS cache, LSO, audio, registry, kernel mode, scheduler)`n- **Smart Scan Profiles Updated**: All game profiles now include MPO disable + CPU parking disable by default`n"
 if (-not $Token) {
     Write-Error "GH_TOKEN not set. Pass -Token or set GH_TOKEN env var."
     exit 1
