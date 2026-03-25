@@ -4,9 +4,9 @@ param(
 
 $owner = "Prominr"
 $repo  = "Lctron-Optimizer"
-$tag   = "v1.7.38"
-$name  = "Lctron Optimizer v1.7.38"
-$body  = "## Lctron Optimizer v1.7.38`n`n### Changes`n- **Advanced Optimizations**: Added MPO disable (fixes DX11/DX12 stutter), CPU core parking disable, 0.5ms timer resolution, interrupt optimization, and 30+ new real PowerShell tweaks`n- **Higher FPS Gains**: Updated FPS estimates — FPS/Shooter: +12-28 FPS, MOBA: +15-35 FPS, Indie: +20-50 FPS`n- **Full Backend Wiring**: All previously UI-only tweaks now have real PowerShell implementations (GPU driver, shader cache, frame pacing, SSD TRIM, DNS cache, LSO, audio, registry, kernel mode, scheduler)`n- **Smart Scan Profiles Updated**: All game profiles now include MPO disable + CPU parking disable by default`n"
+$tag   = "v1.7.39"
+$name  = "Lctron Optimizer v1.7.39"
+$body  = "## Lctron Optimizer v1.7.39`n`n### Changes`n- **FPS Regression Fix**: Reverted overly aggressive DEFAULT_BASIC tweaks (optimizeKernelMode, disablePrefetch, trimDisks, optimizeInterrupts, setTimerResolution, disableTcpAutoTuning, disableLso, optimizeDns, disableXboxServices) that were lowering FPS`n- **Win32PrioritySeparation**: Changed from 38 to 26 (short-variable quantum) for better multi-threaded game performance`n- **Universal Game Scanner**: Auto-Detect now finds games from any launcher - Steam (all games), Epic (manifest scan), GOG, EA/Origin, Ubisoft, Xbox, and generic Program Files`n- **Real Exe Icons**: App icons are now extracted directly from the .exe file instead of using placeholder logos`n"
 if (-not $Token) {
     Write-Error "GH_TOKEN not set. Pass -Token or set GH_TOKEN env var."
     exit 1

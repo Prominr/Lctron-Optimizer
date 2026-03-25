@@ -47,7 +47,7 @@ const DEFAULT_BASIC = {
   disableCO: true, optimizeDSCP: true, optimizePriority: true, optimizeIO: true,
   disablePowerThrottling: true, disableIdleTasks: true, optimizeScheduler: true,
   // Memory
-  clearRAM: true, trimWorkingSet: true, disablePaging: false, largePages: false,
+  clearRAM: true, trimWorkingSet: false, disablePaging: false, largePages: false,
   // CPU
   disableCpuParking: true,
   disableHyperThreading: false, disableSmt: false, cpuAffinity: false, boostCpuClock: false,
@@ -56,32 +56,32 @@ const DEFAULT_BASIC = {
   optimizeGpuDriver: true, enableHags: true, optimizeShaderCache: true, optimizeFramePacing: true,
   gpuBoost: false, disableGpuTimeout: false, setGpuPowerMode: false,
   disableGpuRecovery: false, setGpuPreemption: false, disableGpuScalling: false,
-  // Network
-  optimizeTcpIp: true, disableNagle: true, optimizeDns: true, setQosPriority: true,
-  optimizeTcpWindow: true, disableTcpAutoTuning: true, optimizeNetworkBuffer: true,
-  setDnsCache: true, disableLso: true, optimizeAckFrequency: true, optimizeTcpStack: true,
+  // Network (safe subset only)
+  optimizeTcpIp: true, disableNagle: true, setQosPriority: true,
+  optimizeDns: false, optimizeTcpWindow: false, disableTcpAutoTuning: false, optimizeNetworkBuffer: false,
+  setDnsCache: false, disableLso: false, optimizeAckFrequency: false, optimizeTcpStack: false,
   // Windows
-  disableFullscreenOpt: true, disableGameBar: true, disableXboxServices: true,
-  disableTelemetry: true, disableDiagnostics: true, disableCompatTelemetry: true,
-  disableAnimations: true, disableWindowsInk: true, disableFax: true, disableSmartCard: true,
+  disableFullscreenOpt: true, disableGameBar: true, disableXboxServices: false,
+  disableTelemetry: false, disableDiagnostics: false, disableCompatTelemetry: false,
+  disableAnimations: true, disableWindowsInk: false, disableFax: false, disableSmartCard: false,
   disableDefender: false, disableSysMain: false, disableSearchIndexing: false,
   disableWindowsUpdate: false, disableIndexing: false,
-  disableLocation: true, disableCamera: false, disableMicrophone: false,
+  disableLocation: false, disableCamera: false, disableMicrophone: false,
   disablePrintSpooler: false, disableBluetooth: false, disableBiometrics: false,
-  // Advanced
-  optimizeInterrupts: true, setTimerResolution: true, disableHpet: false, disableCStates: false,
+  // Advanced (safe only)
+  optimizeInterrupts: false, setTimerResolution: false, disableHpet: false, disableCStates: false,
   // Storage
-  optimizeSsd: true, trimDisks: true, disableWriteCache: false,
+  optimizeSsd: true, trimDisks: false, disableWriteCache: false,
   // Display
   disableVsync: false, setRefreshRate: false,
   // Audio
-  optimizeAudio: true, disableAudioEnhancements: true,
+  optimizeAudio: true, disableAudioEnhancements: false,
   // Registry
-  optimizeRegistry: true, disablePrefetch: true,
+  optimizeRegistry: false, disablePrefetch: false,
   // Game
   gameMode: true, highPerfMode: true, disableBackgroundApps: true,
   // System advanced
-  optimizeBootPerformance: true, disableStartupDelay: true, optimizeKernelMode: true,
+  optimizeBootPerformance: false, disableStartupDelay: false, optimizeKernelMode: false,
   disableSystemRestore: false, disableFileHistory: false, disableDefenderCloud: false,
   // Roblox
   robloxGpuBoost: false, robloxNetworkOpt: false, robloxCpuBoost: false,
@@ -365,7 +365,11 @@ export default function AppBoosterPage({ addToast }) {
         const exeName = filePath.split('\\').pop();
         const name = exeName.replace('.exe', '');
         const known = GAME_DB.find(g => g.exe.toLowerCase() === exeName.toLowerCase());
-        const entry = { path: filePath, exe: exeName, name: known?.name || name, emoji: known?.emoji || '⚡', logo: known?.logo || null, publisher: known?.publisher || '', isApp: known?.isApp || false, id: Date.now(), manuallyAdded: true };
+        let logo = known?.logo || null;
+        if (!logo && window.electronAPI?.getFileIcon) {
+          try { logo = await window.electronAPI.getFileIcon(filePath); } catch {}
+        }
+        const entry = { path: filePath, exe: exeName, name: known?.name || name, emoji: known?.emoji || '⚡', logo, publisher: known?.publisher || '', isApp: known?.isApp || false, id: Date.now(), manuallyAdded: true };
         addEntry(entry);
         startScan(entry);
       }
@@ -383,10 +387,12 @@ export default function AppBoosterPage({ addToast }) {
       if (window.electronAPI?.detectInstalledApps) {
         detected = await window.electronAPI.detectInstalledApps();
       }
-      const detectedApps = detected.map(g => ({
-        ...g,
-        logo: g.steamAppId ? STEAM_HDR(g.steamAppId) : null,
-        id: Date.now() + Math.random(),
+      const detectedApps = await Promise.all(detected.map(async g => {
+        let logo = g.steamAppId ? STEAM_HDR(g.steamAppId) : null;
+        if (!logo && window.electronAPI?.getFileIcon) {
+          try { logo = await window.electronAPI.getFileIcon(g.path); } catch {}
+        }
+        return { ...g, logo, id: Date.now() + Math.random() };
       }));
       setApps(prev => {
         const manualApps = prev.filter(a => a.manuallyAdded);

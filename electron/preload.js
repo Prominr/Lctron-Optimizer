@@ -55,4 +55,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   gamingModeEnable: () => ipcRenderer.invoke('gaming-mode-enable'),
   gamingModeDisable: () => ipcRenderer.invoke('gaming-mode-disable'),
   getLiveStats: () => ipcRenderer.invoke('get-live-stats'),
+  getFileIcon: (filePath) => ipcRenderer.invoke('get-file-icon', filePath),
 });

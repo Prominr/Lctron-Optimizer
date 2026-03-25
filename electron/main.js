@@ -1028,50 +1028,168 @@ function findExeInDir(dir, exeName) {
   return null;
 }
 
+const NON_GAME_EXE = /^(unins|setup|install|update|crash|vcredist|directx|redist|repair|dotnet|msvc|prerequisite|helper|notification|drm|eac|easyanticheat|battleye|cef_|dxsetup|vc_|oalinst|unarc|7za|cleanup|uninst|uninstaller|crashpad|crashreport|crashhandler)/i;
+const NON_GAME_DIR = /^(redist|\$|__inst|prerequisites|directx|vcredist|dotnet|support|tools|__common|commonredist|physx|backdrop)/i;
+
+function findBestGameExe(dir, depth = 0) {
+  if (depth >= 4) return null;
+  let bestExe = null;
+  let bestSize = 0;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const e of entries) {
+      if (e.isFile() && e.name.toLowerCase().endsWith('.exe') && !NON_GAME_EXE.test(e.name)) {
+        try {
+          const stat = fs.statSync(path.join(dir, e.name));
+          if (stat.size > bestSize && stat.size > 1024 * 1024) {
+            bestSize = stat.size;
+            bestExe = path.join(dir, e.name);
+            if (bestSize > 50 * 1024 * 1024) return bestExe;
+          }
+        } catch {}
+      } else if (e.isDirectory() && !e.name.startsWith('.') && !NON_GAME_DIR.test(e.name)) {
+        const sub = findBestGameExe(path.join(dir, e.name), depth + 1);
+        if (sub) {
+          try {
+            const s = fs.statSync(sub).size;
+            if (s > bestSize) { bestSize = s; bestExe = sub; }
+            if (bestSize > 50 * 1024 * 1024) return bestExe;
+          } catch {}
+        }
+      }
+    }
+  } catch {}
+  return bestExe;
+}
+
 ipcMain.handle('detect-installed-apps', async () => {
   const steamLibs = getSteamLibraryPaths();
+  const seenPaths = new Set();
   const found = [];
 
-  for (const app of KNOWN_APPS) {
-    let resolved = null;
+  const addApp = (entry) => {
+    const key = (entry.path || '').toLowerCase();
+    if (!key || seenPaths.has(key)) return;
+    seenPaths.add(key);
+    found.push({ ...entry, id: Date.now() + Math.random() });
+  };
 
-    // Check Steam paths
-    if (app.steamDir && steamLibs.length) {
+  const isDupDir = (gameDir) => {
+    const lk = gameDir.toLowerCase() + '\\';
+    for (const p of seenPaths) { if (p.startsWith(lk)) return true; }
+    return false;
+  };
+
+  // ── 1. Known apps (Steam dirs + fixed paths) ─────────────────────────
+  for (const entry of KNOWN_APPS) {
+    let resolved = null;
+    if (entry.steamDir && steamLibs.length) {
       for (const lib of steamLibs) {
-        const candidate = path.join(lib, 'steamapps', 'common', app.steamDir, app.exe);
+        const candidate = path.join(lib, 'steamapps', 'common', entry.steamDir, entry.exe);
         if (fs.existsSync(candidate)) { resolved = candidate; break; }
       }
     }
-
-    // Check fixed paths
-    if (!resolved && app.fixedPaths) {
-      for (const fp of app.fixedPaths) {
-        if (app.exeSearch) {
-          // Directory search
-          if (fs.existsSync(fp)) {
-            const hit = findExeInDir(fp, app.exe);
-            if (hit) { resolved = hit; break; }
-          }
+    if (!resolved && entry.fixedPaths) {
+      for (const fp of entry.fixedPaths) {
+        if (entry.exeSearch) {
+          if (fs.existsSync(fp)) { const hit = findExeInDir(fp, entry.exe); if (hit) { resolved = hit; break; } }
         } else {
           if (fs.existsSync(fp)) { resolved = fp; break; }
         }
       }
     }
-
     if (resolved) {
-      found.push({
-        name: app.name,
-        exe: app.exe,
-        path: resolved,
-        emoji: app.emoji,
-        publisher: app.publisher,
-        isApp: app.isApp || false,
-        steamAppId: app.steamAppId || null,
-        id: Date.now() + Math.random(),
-      });
+      addApp({ name: entry.name, exe: entry.exe, path: resolved, emoji: entry.emoji, publisher: entry.publisher, isApp: entry.isApp || false, steamAppId: entry.steamAppId || null });
     }
   }
+
+  // ── 2. Generic Steam — scan ALL steamapps/common directories ─────────
+  for (const lib of steamLibs) {
+    const commonDir = path.join(lib, 'steamapps', 'common');
+    if (!fs.existsSync(commonDir)) continue;
+    try {
+      const dirs = fs.readdirSync(commonDir, { withFileTypes: true }).filter(e => e.isDirectory());
+      for (const gd of dirs) {
+        const gameDir = path.join(commonDir, gd.name);
+        if (isDupDir(gameDir)) continue;
+        const bestExe = findBestGameExe(gameDir);
+        if (bestExe) addApp({ name: gd.name, exe: path.basename(bestExe), path: bestExe, emoji: '🎮', publisher: 'Steam', isApp: false, steamAppId: null });
+      }
+    } catch {}
+  }
+
+  // ── 3. Epic Games — parse installed manifests ────────────────────────
+  const epicManDir = 'C:\\ProgramData\\Epic\\EpicGamesLauncher\\Data\\Manifests';
+  if (fs.existsSync(epicManDir)) {
+    try {
+      const items = fs.readdirSync(epicManDir).filter(f => f.endsWith('.item'));
+      for (const item of items) {
+        try {
+          const data = JSON.parse(fs.readFileSync(path.join(epicManDir, item), 'utf8'));
+          const installDir = data.InstallLocation;
+          const launchExe  = data.LaunchExecutable;
+          if (!installDir || !launchExe) continue;
+          const exePath = path.join(installDir, launchExe);
+          if (!fs.existsSync(exePath)) continue;
+          addApp({ name: data.DisplayName || data.AppName || path.basename(installDir), exe: path.basename(launchExe), path: exePath, emoji: '🎮', publisher: 'Epic Games', isApp: false, steamAppId: null });
+        } catch {}
+      }
+    } catch {}
+  }
+
+  // ── 4. GOG, EA, Ubisoft, Xbox + extra drives ─────────────────────────
+  const extraGameDirs = [
+    { dir: 'C:\\Program Files (x86)\\GOG Galaxy\\Games',                          publisher: 'GOG' },
+    { dir: 'C:\\Program Files\\GOG Games',                                         publisher: 'GOG' },
+    { dir: 'C:\\Program Files\\EA Games',                                          publisher: 'EA' },
+    { dir: 'C:\\Program Files (x86)\\Origin Games',                               publisher: 'EA' },
+    { dir: 'C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\games',      publisher: 'Ubisoft' },
+    { dir: 'C:\\Program Files\\Ubisoft\\Ubisoft Game Launcher\\games',            publisher: 'Ubisoft' },
+    { dir: 'C:\\XboxGames',                                                        publisher: 'Xbox' },
+  ];
+  for (const drive of ['D','E','F','G','H']) {
+    extraGameDirs.push({ dir: `${drive}:\\Games`,                             publisher: 'Games' });
+    extraGameDirs.push({ dir: `${drive}:\\SteamLibrary\\steamapps\\common`,   publisher: 'Steam' });
+    extraGameDirs.push({ dir: `${drive}:\\Steam\\steamapps\\common`,          publisher: 'Steam' });
+    extraGameDirs.push({ dir: `${drive}:\\Program Files\\EA Games`,           publisher: 'EA' });
+  }
+  for (const { dir, publisher } of extraGameDirs) {
+    if (!fs.existsSync(dir)) continue;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true }).filter(e => e.isDirectory());
+      for (const e of entries) {
+        const gameDir = path.join(dir, e.name);
+        if (isDupDir(gameDir)) continue;
+        const bestExe = findBestGameExe(gameDir);
+        if (bestExe) addApp({ name: e.name, exe: path.basename(bestExe), path: bestExe, emoji: '🎮', publisher, isApp: false, steamAppId: null });
+      }
+    } catch {}
+  }
+
+  // ── 5. Generic Program Files scan ────────────────────────────────────
+  const SKIP_PF = /^(microsoft|windows|common files|internet explorer|windows media player|windows nt|windowspowershell|windowsapps|packages|uninstall information|drivers|intel|amd|nvidia|displaylink|realtek|vlc media|7-zip|winrar|notepad|putty|python|git |node|java|android|zoom|teams|slack|skype|whatsapp|office|visual studio|adobe|autodesk|blender|obs studio|discord|steam|epic|battle\.net|ubisoft|gog|origin|roblox|riot games)/i;
+  for (const pf of ['C:\\Program Files', 'C:\\Program Files (x86)']) {
+    if (!fs.existsSync(pf)) continue;
+    try {
+      const entries = fs.readdirSync(pf, { withFileTypes: true }).filter(e => e.isDirectory());
+      for (const e of entries) {
+        if (SKIP_PF.test(e.name)) continue;
+        const gameDir = path.join(pf, e.name);
+        if (isDupDir(gameDir)) continue;
+        const bestExe = findBestGameExe(gameDir);
+        if (bestExe) addApp({ name: e.name, exe: path.basename(bestExe), path: bestExe, emoji: '🎮', publisher: 'Unknown', isApp: false, steamAppId: null });
+      }
+    } catch {}
+  }
+
   return found;
+});
+
+ipcMain.handle('get-file-icon', async (event, filePath) => {
+  try {
+    const icon = await app.getFileIcon(filePath, { size: 'large' });
+    return icon.toDataURL();
+  } catch { return null; }
 });
 
 ipcMain.handle('browse-image', async () => {
@@ -1345,7 +1463,7 @@ public class NtIO { [DllImport("ntdll.dll")] public static extern int NtSetInfor
     if (fixLagSpikes) {
       script += `
       # Anti-lag spike: set high-res timer + disable throttling + optimize scheduler
-      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 38 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 26 -Type DWord -Force -ErrorAction SilentlyContinue
       Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" -Name "SystemResponsiveness" -Value 10 -Type DWord -Force -ErrorAction SilentlyContinue
       Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" -Name "NetworkThrottlingIndex" -Value 4294967295 -Type DWord -Force -ErrorAction SilentlyContinue
       $ptKey = "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling"
@@ -1679,7 +1797,7 @@ public class NtIO { [DllImport("ntdll.dll")] public static extern int NtSetInfor
 
     if (optimizeScheduler) {
       script += `
-      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 38 -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 26 -Type DWord -Force -ErrorAction SilentlyContinue
       Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "IRQ8Priority"            -Value 1  -Type DWord -Force -ErrorAction SilentlyContinue
       Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
       `;
