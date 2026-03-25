@@ -428,7 +428,36 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.ab-tab-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.ab-sticky-boost {
+  flex-shrink: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  background: var(--bg-primary);
+}
+
+.ab-sticky-boost .ab-boost-action {
+  width: 100%;
+  justify-content: center;
+}
+
+.ab-sticky-pro-lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #555;
+  padding: 8px 0;
 }
 
 .ab-config-field {
@@ -537,9 +566,11 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: calc(100vh - 320px);
+  height: 100%;
   overflow-y: auto;
   padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
 
 /* Optimization sections */
@@ -933,3 +964,186 @@
 }
 
 .ab-focus-check-row strong { color: var(--text-primary); }
+
+/* ── Smart Scan Modal ─────────────────────────────────────────────────── */
+.ab-scan-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.ab-scan-modal {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 24px;
+  width: 380px;
+  max-width: calc(100vw - 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+}
+
+.ab-scan-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ab-scan-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ab-scan-icon-wrap.scanning {
+  background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.25);
+  animation: ab-scan-pulse 1.4s ease-in-out infinite;
+}
+
+.ab-scan-icon-wrap.done {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+}
+
+@keyframes ab-scan-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(167,139,250,0.25); }
+  50% { box-shadow: 0 0 0 8px rgba(167,139,250,0); }
+}
+
+.ab-scan-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.ab-scan-sub {
+  font-size: 11px;
+  color: #555;
+  margin-top: 2px;
+}
+
+.ab-scan-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.ab-scan-stage-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #444;
+  transition: color 0.2s;
+}
+
+.ab-scan-stage-row.done { color: #22c55e; }
+.ab-scan-stage-row.active { color: var(--text-primary); font-weight: 600; }
+
+.ab-scan-spin {
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(167,139,250,0.3);
+  border-top-color: #a78bfa;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.ab-scan-profile-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  align-self: flex-start;
+}
+
+.ab-scan-desc {
+  margin: 0;
+  font-size: 11.5px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.ab-scan-rec-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #444;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.ab-scan-rec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ab-scan-rec-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #888;
+}
+
+.ab-scan-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ab-scan-apply-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: rgba(80,48,224,0.15);
+  border: 1px solid rgba(80,48,224,0.35);
+  color: #a78bfa;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ab-scan-apply-btn:hover {
+  background: rgba(80,48,224,0.25);
+  border-color: rgba(80,48,224,0.55);
+}
+
+.ab-scan-skip-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid #222;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ab-scan-skip-btn:hover { color: #888; border-color: #333; }

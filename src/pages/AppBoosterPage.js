@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, Plus, Trash2, Zap, Wifi, Cpu, Monitor, CheckCircle, Search, Gamepad2, RefreshCw, ChevronLeft, Settings, Target, Flame, Save, FolderOpen, BrainCircuit, Lightbulb, AlertTriangle, Crown, Lock, TrendingDown, Activity, Info } from 'lucide-react';
+import { Rocket, Plus, Trash2, Zap, Wifi, Cpu, Monitor, CheckCircle, Search, Gamepad2, RefreshCw, ChevronLeft, Settings, Target, Flame, Save, FolderOpen, BrainCircuit, Lightbulb, AlertTriangle, Crown, Lock, TrendingDown, Activity, Info, ScanLine, Sparkles } from 'lucide-react';
 import { usePremium } from '../context/PremiumContext';
 import PageHeader from '../components/PageHeader';
 import './AppBoosterPage.css';
@@ -199,6 +199,69 @@ const BOOST_STAGES = [
   { label: 'Maximizing FPS output', icon: Rocket },
 ];
 
+const SCAN_STAGES = [
+  { label: 'Analyzing executable', icon: Search },
+  { label: 'Detecting game engine', icon: Cpu },
+  { label: 'Scanning system resources', icon: Monitor },
+  { label: 'Building recommendations', icon: Lightbulb },
+];
+
+const GAME_PROFILES = {
+  fps: {
+    label: 'Competitive FPS', icon: '🎯', color: '#e03030',
+    desc: 'Tuned for lowest latency, max FPS, and zero lag spikes.',
+    highlights: ['Disable Nagle — minimum network latency','Realtime CPU priority','Disable fullscreen optimizations','Fix lag spikes & micro-stutter','High Performance power plan','GPU driver optimization'],
+    tweaks: { disableNagle:true,setQosPriority:true,disableGameBar:true,disableFullscreenOpt:true,highPerfMode:true,fixLagSpikes:true,antiMicrostutter:true,reducePingSpikes:true,clearRAM:true,optimizePriority:true,disablePowerThrottling:true,optimizeTcpIp:true,optimizeGpuDriver:true,disableAnimations:true },
+  },
+  moba: {
+    label: 'MOBA', icon: '⚔️', color: '#a78bfa',
+    desc: 'Stable FPS and consistent network for MOBA matches.',
+    highlights: ['Network QoS for stable ping','CPU thread optimization','Disable background apps','Fix lag spikes','Game Mode enabled','Disable Game Bar overlay'],
+    tweaks: { setQosPriority:true,gameMode:true,disableGameBar:true,disableBackgroundApps:true,fixLagSpikes:true,antiMicrostutter:true,optimizePriority:true,optimizeDns:true,highPerfMode:true,disableXboxServices:true,clearRAM:true },
+  },
+  br: {
+    label: 'Battle Royale', icon: '🏆', color: '#f59e0b',
+    desc: 'Max FPS and low ping for fast-paced battle royale games.',
+    highlights: ['TCP/IP network optimization','Reduce ping spikes','GPU driver optimization','RAM trim on start','Disable background services','Max performance power plan'],
+    tweaks: { optimizeTcpIp:true,disableNagle:true,reducePingSpikes:true,optimizeGpuDriver:true,clearRAM:true,trimWorkingSet:true,highPerfMode:true,disableGameBar:true,disableFullscreenOpt:true,gameMode:true,fixLagSpikes:true,antiMicrostutter:true },
+  },
+  openworld: {
+    label: 'Open World / RPG', icon: '🗺️', color: '#22c55e',
+    desc: 'Smooth frames and fast loading for open world games.',
+    highlights: ['Anti micro-stutter for smooth frames','RAM clear & trim','SSD I/O optimization','GPU frame pacing','Disable idle tasks','High Performance plan'],
+    tweaks: { antiMicrostutter:true,clearRAM:true,trimWorkingSet:true,optimizeSsd:true,optimizeGpuDriver:true,highPerfMode:true,disableIdleTasks:true,gameMode:true,disableBackgroundApps:true,disableAnimations:true,fixLagSpikes:true },
+  },
+  roblox: {
+    label: 'Roblox', icon: '🧱', color: '#06b6d4',
+    desc: 'Roblox-specific engine and network optimizations.',
+    highlights: ['Roblox GPU Boost enabled','Roblox network optimization','Roblox CPU Boost','Disable fullscreen optimizations','Anti lag spike fix','Game Mode + High Perf plan'],
+    tweaks: { robloxGpuBoost:true,robloxNetworkOpt:true,robloxCpuBoost:true,disableFullscreenOpt:true,fixLagSpikes:true,gameMode:true,highPerfMode:true,optimizePriority:true,clearRAM:true,antiMicrostutter:true,setQosPriority:true },
+  },
+  app: {
+    label: 'Desktop App', icon: '🖥️', color: '#06b6d4',
+    desc: 'Performance tuning for productivity and background apps.',
+    highlights: ['CPU priority boost','RAM working set trim','Disable power throttling','I/O priority optimization','Disable idle background tasks'],
+    tweaks: { optimizePriority:true,trimWorkingSet:true,disablePowerThrottling:true,optimizeIO:true,disableIdleTasks:true,optimizeScheduler:true },
+  },
+  generic: {
+    label: 'Game', icon: '🎮', color: '#a78bfa',
+    desc: 'Balanced performance profile with all core optimizations.',
+    highlights: ['Core performance tweaks','Anti-lag & micro-stutter fix','Network QoS priority','High Performance power plan','Disable Game Bar overlay','RAM optimization on launch'],
+    tweaks: { fixLagSpikes:true,antiMicrostutter:true,reducePingSpikes:true,disableCO:true,optimizePriority:true,optimizeIO:true,highPerfMode:true,gameMode:true,disableGameBar:true,disableFullscreenOpt:true,clearRAM:true,setQosPriority:true },
+  },
+};
+
+function getGameProfile(app) {
+  const n = (app.name || '').toLowerCase();
+  if (n.includes('roblox')) return GAME_PROFILES.roblox;
+  if (n.includes('valorant') || n.includes('cs2') || n.includes('apex') || n.includes('fortnite') || n.includes('overwatch')) return GAME_PROFILES.fps;
+  if (n.includes('league') || n.includes('dota') || n.includes('rocket league')) return GAME_PROFILES.moba;
+  if (n.includes('pubg') || n.includes('warzone') || n.includes('battlegrounds')) return GAME_PROFILES.br;
+  if (n.includes('gta') || n.includes('cyberpunk') || n.includes('elden ring') || n.includes('minecraft') || n.includes('witcher')) return GAME_PROFILES.openworld;
+  if (app.isApp) return GAME_PROFILES.app;
+  return GAME_PROFILES.generic;
+}
+
 export default function AppBoosterPage({ addToast }) {
   const [apps, setApps] = useState([]);
   const [selected, setSelected] = useState(null); // app id currently in config view
@@ -212,6 +275,7 @@ export default function AppBoosterPage({ addToast }) {
   const [focusActive, setFocusActive] = useState({});
   const [runningApps, setRunningApps] = useState(new Set());
   const runCheckRef = useRef(null);
+  const [scanState, setScanState] = useState(null);
 
   useEffect(() => {
     const checkRunning = async () => {
@@ -261,6 +325,35 @@ export default function AppBoosterPage({ addToast }) {
     });
   }, [saveApps]);
 
+  const startScan = useCallback((entry) => {
+    setScanState({ app: entry, stageIdx: 0, done: false, profile: null });
+    let i = 0;
+    const tick = setInterval(() => {
+      i++;
+      if (i >= SCAN_STAGES.length) {
+        clearInterval(tick);
+        const profile = getGameProfile(entry);
+        setScanState(prev => prev ? { ...prev, stageIdx: SCAN_STAGES.length - 1, done: true, profile } : prev);
+      } else {
+        setScanState(prev => prev ? { ...prev, stageIdx: i } : prev);
+      }
+    }, 620);
+  }, []);
+
+  const applyScanRecommendations = useCallback((app, profile) => {
+    setAppConfigs(prev => {
+      const existing = prev[app.id] || { basic: { ...DEFAULT_BASIC }, custom: { ...DEFAULT_CUSTOM } };
+      const newBasic = { ...existing.basic, ...profile.tweaks };
+      const next = { ...prev, [app.id]: { ...existing, basic: newBasic } };
+      saveApps(apps, next);
+      return next;
+    });
+    setScanState(null);
+    setSelected(app.id);
+    setConfigTab('basic');
+    addToast(`Smart settings applied for ${app.name}!`, 'success');
+  }, [apps, saveApps, addToast]);
+
   const handleAddApp = async () => {
     if (window.electronAPI) {
       const filePath = await window.electronAPI.browseExe();
@@ -268,10 +361,14 @@ export default function AppBoosterPage({ addToast }) {
         const exeName = filePath.split('\\').pop();
         const name = exeName.replace('.exe', '');
         const known = GAME_DB.find(g => g.exe.toLowerCase() === exeName.toLowerCase());
-        addEntry({ path: filePath, exe: exeName, name: known?.name || name, emoji: known?.emoji || '⚡', logo: known?.logo || null, publisher: known?.publisher || '', isApp: known?.isApp || false, id: Date.now(), manuallyAdded: true });
+        const entry = { path: filePath, exe: exeName, name: known?.name || name, emoji: known?.emoji || '⚡', logo: known?.logo || null, publisher: known?.publisher || '', isApp: known?.isApp || false, id: Date.now(), manuallyAdded: true };
+        addEntry(entry);
+        startScan(entry);
       }
     } else {
-      addEntry({ path: `C:\\Games\\Game_${apps.length + 1}.exe`, name: `Game ${apps.length + 1}`, emoji: '🎮', publisher: 'Unknown', isApp: false, id: Date.now(), manuallyAdded: true });
+      const entry = { path: `C:\\Games\\Game_${apps.length + 1}.exe`, name: `Game ${apps.length + 1}`, emoji: '🎮', publisher: 'Unknown', isApp: false, id: Date.now(), manuallyAdded: true };
+      addEntry(entry);
+      startScan(entry);
     }
   };
 
@@ -455,6 +552,7 @@ export default function AppBoosterPage({ addToast }) {
             </div>
 
             {/* Tab content */}
+            <div className="ab-tab-wrap">
             <AnimatePresence mode="wait">
               {configTab === 'basic' && (
                 <motion.div key="basic" className="ab-tab-body" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }}>
@@ -627,25 +725,6 @@ export default function AppBoosterPage({ addToast }) {
                     </div>
                   )}
 
-                  <div className="ab-boost-btn-row">
-                    {isBoosting ? (
-                      <div className="ab-boost-stages">
-                        {BOOST_STAGES.map((s, i) => {
-                          const SI = s.icon;
-                          return (
-                            <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
-                              {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
-                              <span>{s.label}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <button className={`ab-boost-action ${boostedMode === 'basic' ? 'boosted' : ''}`} onClick={() => handleBoost(selectedApp, 'basic')}>
-                        {boostedMode === 'basic' ? <><CheckCircle size={14} /> Boosted</> : <><Zap size={14} /> Boost Now</>}
-                      </button>
-                    )}
-                  </div>
                 </motion.div>
               )}
 
@@ -685,29 +764,6 @@ export default function AppBoosterPage({ addToast }) {
                             <span>{item}</span>
                           </div>
                         ))}
-                      </div>
-                      <div className="ab-boost-btn-row">
-                        {isBoosting ? (
-                          <div className="ab-boost-stages">
-                            {BOOST_STAGES.map((s, i) => {
-                              const SI = s.icon;
-                              return (
-                                <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
-                                  {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
-                                  <span>{s.label}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <button
-                            className={`ab-boost-action ${boostedMode === 'ultimate' ? 'boosted' : ''}`}
-                            style={{ background: boostedMode === 'ultimate' ? 'rgba(167,139,250,0.15)' : 'rgba(167,139,250,0.08)', borderColor: boostedMode === 'ultimate' ? 'rgba(167,139,250,0.5)' : 'rgba(167,139,250,0.25)', color: '#a78bfa' }}
-                            onClick={() => handleBoost(selectedApp, 'ultimate')}
-                          >
-                            {boostedMode === 'ultimate' ? <><CheckCircle size={14} /> Ultimate Active</> : <><Crown size={14} /> Ultimate Boost</>}
-                          </button>
-                        )}
                       </div>
                     </>
                   )}
@@ -753,31 +809,43 @@ export default function AppBoosterPage({ addToast }) {
                     ))}
                   </div>
 
-                  <div className="ab-boost-btn-row">
-                    {isBoosting ? (
-                      <div className="ab-boost-stages">
-                        {BOOST_STAGES.map((s, i) => {
-                          const SI = s.icon;
-                          return (
-                            <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
-                              {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
-                              <span>{s.label}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <button className={`ab-boost-action ab-focus-btn ${focusActive[selectedApp.id] ? 'boosted' : ''}`} onClick={() => handleBoost(selectedApp, 'focus')}>
-                        {focusActive[selectedApp.id]
-                          ? <><CheckCircle size={14} /> Focus Mode Active</>
-                          : <><Flame size={14} /> Activate Focus Mode</>
-                        }
-                      </button>
-                    )}
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
+            </div>{/* ab-tab-wrap */}
+            <div className="ab-sticky-boost">
+              {isBoosting ? (
+                <div className="ab-boost-stages">
+                  {BOOST_STAGES.map((s, i) => {
+                    const SI = s.icon;
+                    return (
+                      <div key={s.label} className={`ab-stage ${i < boostStage ? 'done' : i === boostStage ? 'active' : 'pending'}`}>
+                        {i < boostStage ? <CheckCircle size={11} /> : <SI size={11} />}
+                        <span>{s.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : configTab === 'basic' ? (
+                <button className={`ab-boost-action ${boostedMode === 'basic' ? 'boosted' : ''}`} onClick={() => handleBoost(selectedApp, 'basic')}>
+                  {boostedMode === 'basic' ? <><CheckCircle size={14} /> Boosted</> : <><Zap size={14} /> Boost Now</>}
+                </button>
+              ) : configTab === 'focus' ? (
+                <button className={`ab-boost-action ab-focus-btn ${focusActive[selectedApp.id] ? 'boosted' : ''}`} onClick={() => handleBoost(selectedApp, 'focus')}>
+                  {focusActive[selectedApp.id] ? <><CheckCircle size={14} /> Focus Active</> : <><Flame size={14} /> Activate Focus Mode</>}
+                </button>
+              ) : configTab === 'ultimate' && isPremium ? (
+                <button
+                  className={`ab-boost-action ${boostedMode === 'ultimate' ? 'boosted' : ''}`}
+                  style={{ background: boostedMode === 'ultimate' ? 'rgba(167,139,250,0.15)' : 'rgba(167,139,250,0.08)', borderColor: boostedMode === 'ultimate' ? 'rgba(167,139,250,0.5)' : 'rgba(167,139,250,0.25)', color: '#a78bfa' }}
+                  onClick={() => handleBoost(selectedApp, 'ultimate')}
+                >
+                  {boostedMode === 'ultimate' ? <><CheckCircle size={14} /> Ultimate Active</> : <><Crown size={14} /> Ultimate Boost</>}
+                </button>
+              ) : configTab === 'ultimate' ? (
+                <div className="ab-sticky-pro-lock"><Lock size={11} /> Pro required for Ultimate Boost</div>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
@@ -1117,6 +1185,87 @@ export default function AppBoosterPage({ addToast }) {
       </aside>
       </div>{/* page-body */}
       </div>{/* booster-content */}
+
+      {/* ── Smart Scan Modal ────────────────────────────────────────── */}
+      <AnimatePresence>
+        {scanState && (
+          <motion.div className="ab-scan-overlay"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}>
+            <motion.div className="ab-scan-modal"
+              initial={{ opacity: 0, scale: 0.92, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ type: 'spring', stiffness: 380, damping: 32 }}>
+
+              <div className="ab-scan-header">
+                <div className={`ab-scan-icon-wrap ${scanState.done ? 'done' : 'scanning'}`}>
+                  {scanState.done
+                    ? <Sparkles size={20} style={{ color: scanState.profile?.color || '#a78bfa' }} />
+                    : <ScanLine size={20} style={{ color: '#a78bfa' }} />
+                  }
+                </div>
+                <div>
+                  <div className="ab-scan-title">
+                    {scanState.done ? 'Scan Complete!' : `Scanning ${scanState.app.name}`}
+                  </div>
+                  <div className="ab-scan-sub">
+                    {scanState.done ? scanState.profile?.label : 'Generating best settings…'}
+                  </div>
+                </div>
+              </div>
+
+              {!scanState.done ? (
+                <div className="ab-scan-stages">
+                  {SCAN_STAGES.map((s, i) => {
+                    const SI = s.icon;
+                    const st = i < scanState.stageIdx ? 'done' : i === scanState.stageIdx ? 'active' : 'pending';
+                    return (
+                      <div key={s.label} className={`ab-scan-stage-row ${st}`}>
+                        {st === 'done'
+                          ? <CheckCircle size={12} style={{ color: '#22c55e' }} />
+                          : <SI size={12} />
+                        }
+                        <span>{s.label}</span>
+                        {st === 'active' && <div className="ab-scan-spin" />}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <>
+                  <div className="ab-scan-profile-badge" style={{
+                    color: scanState.profile.color,
+                    borderColor: scanState.profile.color + '44',
+                    background: scanState.profile.color + '14',
+                  }}>
+                    {scanState.profile.icon} {scanState.profile.label}
+                  </div>
+                  <p className="ab-scan-desc">{scanState.profile.desc}</p>
+                  <div className="ab-scan-rec-label">Recommended settings</div>
+                  <div className="ab-scan-rec-list">
+                    {scanState.profile.highlights.map(h => (
+                      <div key={h} className="ab-scan-rec-row">
+                        <CheckCircle size={10} style={{ color: '#22c55e', flexShrink: 0 }} />
+                        <span>{h}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="ab-scan-actions">
+                    <button className="ab-scan-apply-btn"
+                      onClick={() => applyScanRecommendations(scanState.app, scanState.profile)}>
+                      <Zap size={13} /> Apply Smart Settings
+                    </button>
+                    <button className="ab-scan-skip-btn" onClick={() => setScanState(null)}>
+                      Skip
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
