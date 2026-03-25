@@ -1,6 +1,6 @@
 {
   "name": "lctron-optimizer",
-  "version": "1.7.39",
+  "version": "1.7.40",
   "description": "Lctron - Advanced Windows Optimization Suite",
   "author": "Lctron",
   "main": "electron/main.js",

@@ -1031,30 +1031,37 @@ function findExeInDir(dir, exeName) {
 const NON_GAME_EXE = /^(unins|setup|install|update|crash|vcredist|directx|redist|repair|dotnet|msvc|prerequisite|helper|notification|drm|eac|easyanticheat|battleye|cef_|dxsetup|vc_|oalinst|unarc|7za|cleanup|uninst|uninstaller|crashpad|crashreport|crashhandler)/i;
 const NON_GAME_DIR = /^(redist|\$|__inst|prerequisites|directx|vcredist|dotnet|support|tools|__common|commonredist|physx|backdrop)/i;
 
-function findBestGameExe(dir, depth = 0) {
+function scoreExe(exePath, rootDirName) {
+  const base = path.basename(exePath, '.exe').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const dir  = rootDirName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  let score = 0;
+  try { score += Math.log10(Math.max(fs.statSync(exePath).size, 1)); } catch {}
+  if (base === dir) score += 50;                     // exact match
+  else if (base.includes(dir) || dir.includes(base)) score += 20; // partial match
+  if (/launcher|bootstrap|patcher|updater|autoupdat/i.test(base)) score -= 15;
+  return score;
+}
+
+function findBestGameExe(dir, depth = 0, rootDir) {
   if (depth >= 4) return null;
+  const root = rootDir || path.basename(dir);
   let bestExe = null;
-  let bestSize = 0;
+  let bestScore = -Infinity;
   try {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const e of entries) {
       if (e.isFile() && e.name.toLowerCase().endsWith('.exe') && !NON_GAME_EXE.test(e.name)) {
+        const exePath = path.join(dir, e.name);
         try {
-          const stat = fs.statSync(path.join(dir, e.name));
-          if (stat.size > bestSize && stat.size > 1024 * 1024) {
-            bestSize = stat.size;
-            bestExe = path.join(dir, e.name);
-            if (bestSize > 50 * 1024 * 1024) return bestExe;
-          }
+          if (fs.statSync(exePath).size < 1024 * 1024) continue;
+          const s = scoreExe(exePath, root);
+          if (s > bestScore) { bestScore = s; bestExe = exePath; }
         } catch {}
       } else if (e.isDirectory() && !e.name.startsWith('.') && !NON_GAME_DIR.test(e.name)) {
-        const sub = findBestGameExe(path.join(dir, e.name), depth + 1);
+        const sub = findBestGameExe(path.join(dir, e.name), depth + 1, root);
         if (sub) {
-          try {
-            const s = fs.statSync(sub).size;
-            if (s > bestSize) { bestSize = s; bestExe = sub; }
-            if (bestSize > 50 * 1024 * 1024) return bestExe;
-          } catch {}
+          const s = scoreExe(sub, root);
+          if (s > bestScore) { bestScore = s; bestExe = sub; }
         }
       }
     }

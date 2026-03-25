@@ -141,7 +141,22 @@ const DEFAULT_CUSTOM = {
 
 function GameArt({ logo, emoji, name, size = 'card' }) {
   const [failed, setFailed] = React.useState(false);
+  const isIcon = logo && logo.startsWith('data:');
   if (logo && !failed) {
+    if (isIcon) {
+      return (
+        <div className={`game-art-icon-wrap game-art-${size}`}>
+          <img
+            src={logo}
+            alt={name}
+            className="game-art-icon-img"
+            onError={() => setFailed(true)}
+            draggable={false}
+          />
+          <span className="game-art-icon-label">{name}</span>
+        </div>
+      );
+    }
     return (
       <img
         src={logo}

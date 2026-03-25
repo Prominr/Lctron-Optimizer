@@ -1,5 +1,5 @@
 import React from 'react';
-import { Minus, Square, X, Zap } from 'lucide-react';
+import { Minus, Square, X } from 'lucide-react';
 import './TitleBar.css';
 
 export default function TitleBar() {
@@ -11,7 +11,7 @@ export default function TitleBar() {
     <div className="titlebar drag-region">
       <div className="titlebar-left no-drag">
         <div className="titlebar-logo">
-          <Zap size={16} className="logo-icon" />
+          <img src="./icon-32.png" alt="Lctron" className="logo-icon" style={{ width: 18, height: 18, objectFit: 'contain' }} onError={e => { e.target.style.display='none'; }} />
           <span className="logo-text">Lctron</span>
         </div>
       </div>
