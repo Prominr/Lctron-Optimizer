@@ -4,9 +4,9 @@ param(
 
 $owner = "Prominr"
 $repo  = "Lctron-Optimizer"
-$tag   = "v1.7.40"
-$name  = "Lctron Optimizer v1.7.40"
-$body  = "## Lctron Optimizer v1.7.40`n`n### Changes`n- **FPS Regression Fix**: Reverted overly aggressive DEFAULT_BASIC tweaks (optimizeKernelMode, disablePrefetch, trimDisks, optimizeInterrupts, setTimerResolution, disableTcpAutoTuning, disableLso, optimizeDns, disableXboxServices) that were lowering FPS`n- **Win32PrioritySeparation**: Changed from 38 to 26 (short-variable quantum) for better multi-threaded game performance`n- **Universal Game Scanner**: Auto-Detect now finds games from any launcher - Steam (all games), Epic (manifest scan), GOG, EA/Origin, Ubisoft, Xbox, and generic Program Files`n- **Real Exe Icons**: App icons are now extracted directly from the .exe file instead of using placeholder logos`n"
+$tag   = "v1.7.41"
+$name  = "Lctron Optimizer v1.7.41"
+$body  = "## Lctron Optimizer v1.7.41`n`n### Changes`n- **FPS Regression Fix**: Reverted overly aggressive DEFAULT_BASIC tweaks (optimizeKernelMode, disablePrefetch, trimDisks, optimizeInterrupts, setTimerResolution, disableTcpAutoTuning, disableLso, optimizeDns, disableXboxServices) that were lowering FPS`n- **Win32PrioritySeparation**: Changed from 38 to 26 (short-variable quantum) for better multi-threaded game performance`n- **Universal Game Scanner**: Auto-Detect now finds games from any launcher - Steam (all games), Epic (manifest scan), GOG, EA/Origin, Ubisoft, Xbox, and generic Program Files`n- **Real Exe Icons**: App icons are now extracted directly from the .exe file instead of using placeholder logos`n"
 if (-not $Token) {
     Write-Error "GH_TOKEN not set. Pass -Token or set GH_TOKEN env var."
     exit 1

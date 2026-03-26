@@ -373,6 +373,15 @@ export default function AppBoosterPage({ addToast }) {
     addToast(`Smart settings applied for ${app.name}!`, 'success');
   }, [apps, saveApps, addToast]);
 
+  const handleRemoveAll = () => {
+    if (window.confirm(`Remove all ${apps.length} programs from the library?`)) {
+      saveApps([]);
+      setApps([]);
+      setSelected(null);
+      addToast('Library cleared', 'success');
+    }
+  };
+
   const handleAddApp = async () => {
     if (window.electronAPI) {
       const filePath = await window.electronAPI.browseExe();
@@ -470,7 +479,7 @@ export default function AppBoosterPage({ addToast }) {
       if (window.electronAPI) {
         if (mode === 'ultimate') {
           result = await window.electronAPI.boostFocusMode(app.path);
-          const ultimateOpts = { ...cfg.basic, disableCO: true, optimizeDSCP: true, optimizePriority: true, optimizeIO: true, robloxGpuBoost: true, robloxNetworkOpt: true, robloxCpuBoost: true };
+          const ultimateOpts = { ...cfg.basic, disableCO: true, optimizeDSCP: true, optimizePriority: true, optimizeIO: true, robloxGpuBoost: true, robloxNetworkOpt: true, robloxCpuBoost: true, ultimatePerf: true, highPerfMode: false };
           await window.electronAPI.boostAppAdvanced(app.path, ultimateOpts);
           for (const tweakId of ['pro-gpu-hwsched', 'pro-timer-res', 'pro-disable-uwp-bg']) {
             await window.electronAPI.applyTweak(tweakId, true).catch(() => {});
@@ -899,6 +908,11 @@ export default function AppBoosterPage({ addToast }) {
         <button className="btn-add-app" onClick={handleAddApp}>
           <Plus size={13} /> Add Program
         </button>
+        {apps.length > 0 && (
+          <button className="btn-remove-all" onClick={handleRemoveAll} title="Remove all programs from library">
+            <Trash2 size={13} /> Remove All
+          </button>
+        )}
       </div>
 
       <div className="ab-library-section-label">Program Library</div>

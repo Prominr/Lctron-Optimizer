@@ -944,27 +944,44 @@ ipcMain.handle('get-app-version', () => app.getVersion());
 // ─── App Booster – real disk detection ───────────────────────────────────────
 // Known game/app entries; paths may contain multiple candidates (first found wins)
 const KNOWN_APPS = [
-  // Steam games — paths relative to a Steam library root under steamapps\common
-  { name: 'CS2',               exe: 'cs2.exe',                           steamDir: 'Counter-Strike Global Offensive\\game\\bin\\win64',           steamAppId: 730,     emoji: '💣', publisher: 'Valve' },
-  { name: 'Dota 2',            exe: 'dota2.exe',                         steamDir: 'dota 2 beta\\game\\bin\\win64',                                steamAppId: 570,     emoji: '⚔️', publisher: 'Valve' },
-  { name: 'Apex Legends',      exe: 'r5apex.exe',                        steamDir: 'Apex Legends',                                                 steamAppId: 1172470, emoji: '🏹', publisher: 'EA' },
-  { name: 'GTA V',             exe: 'GTA5.exe',                          steamDir: 'Grand Theft Auto V',                                           steamAppId: 271590,  emoji: '🚗', publisher: 'Rockstar' },
-  { name: 'Cyberpunk 2077',    exe: 'Cyberpunk2077.exe',                 steamDir: 'Cyberpunk 2077\\bin\\x64',                                     steamAppId: 1091500, emoji: '🤖', publisher: 'CD Projekt Red' },
-  { name: 'Elden Ring',        exe: 'eldenring.exe',                     steamDir: 'ELDEN RING\\Game',                                             steamAppId: 1245620, emoji: '🗡️', publisher: 'FromSoftware' },
-  { name: 'Rocket League',     exe: 'RocketLeague.exe',                  steamDir: 'rocketleague\\Binaries\\Win64',                                steamAppId: 252950,  emoji: '🚀', publisher: 'Psyonix' },
-  { name: 'PUBG',              exe: 'TslGame.exe',                       steamDir: 'PUBG\\TslGame\\Binaries\\Win64',                               steamAppId: 578080,  emoji: '🎯', publisher: 'Krafton' },
-  { name: 'Team Fortress 2',   exe: 'hl2.exe',                           steamDir: 'Team Fortress 2',                                              steamAppId: 440,     emoji: '🎩', publisher: 'Valve' },
-  { name: 'Left 4 Dead 2',     exe: 'left4dead2.exe',                    steamDir: 'Left 4 Dead 2',                                                steamAppId: 550,     emoji: '🧟', publisher: 'Valve' },
-  { name: 'Rust',              exe: 'RustClient.exe',                    steamDir: 'Rust',                                                         steamAppId: 252490,  emoji: '🪓', publisher: 'Facepunch' },
-  { name: 'ARK',               exe: 'ShooterGame.exe',                   steamDir: 'ARK\\ShooterGame\\Binaries\\Win64',                            steamAppId: 346110,  emoji: '🦕', publisher: 'Studio Wildcard' },
-  { name: 'Forza Horizon 5',   exe: 'ForzaHorizon5.exe',                 steamDir: 'ForzaHorizon5',                                                steamAppId: 1551360, emoji: '🏎️', publisher: 'Xbox' },
-  { name: 'Halo Infinite',     exe: 'HaloInfinite.exe',                  steamDir: 'Halo Infinite',                                                steamAppId: 1240440, emoji: '🪖', publisher: 'Xbox' },
-  { name: 'Baldur\'s Gate 3',  exe: 'bg3.exe',                           steamDir: 'Baldurs Gate 3\\bin',                                          steamAppId: 1086940, emoji: '⚔️', publisher: 'Larian' },
-  { name: 'Hogwarts Legacy',   exe: 'HogwartsLegacy.exe',                steamDir: 'Hogwarts Legacy\\Phoenix\\Binaries\\Win64',                    steamAppId: 990080,  emoji: '🧙', publisher: 'WB Games' },
-  { name: 'The Witcher 3',     exe: 'witcher3.exe',                      steamDir: 'The Witcher 3\\bin\\x64',                                      steamAppId: 292030,  emoji: '🗡️', publisher: 'CD Projekt Red' },
-  { name: 'Rainbow Six Siege', exe: 'RainbowSix.exe',                    steamDir: 'Tom Clancy\'s Rainbow Six Siege',                              steamAppId: 359550,  emoji: '🛡️', publisher: 'Ubisoft' },
-  { name: 'Warframe',          exe: 'Warframe.x64.exe',                  steamDir: 'Warframe',                                                     steamAppId: 230410,  emoji: '🤖', publisher: 'Digital Extremes' },
-  { name: 'Destiny 2',         exe: 'destiny2.exe',                      steamDir: 'Destiny 2',                                                    steamAppId: 1085660, emoji: '🚀', publisher: 'Bungie' },
+  // Steam games — steamDir is the steamapps/common folder name; exe found recursively
+  { name: 'CS2',                    exe: 'cs2.exe',                              steamDir: 'Counter-Strike Global Offensive', steamAppId: 730,     emoji: '💣', publisher: 'Valve' },
+  { name: 'Dota 2',                 exe: 'dota2.exe',                            steamDir: 'dota 2 beta',                     steamAppId: 570,     emoji: '⚔️', publisher: 'Valve' },
+  { name: 'Apex Legends',           exe: 'r5apex.exe',                           steamDir: 'Apex Legends',                    steamAppId: 1172470, emoji: '🏹', publisher: 'EA' },
+  { name: 'GTA V',                  exe: 'GTA5.exe',                             steamDir: 'Grand Theft Auto V',              steamAppId: 271590,  emoji: '🚗', publisher: 'Rockstar' },
+  { name: 'Cyberpunk 2077',         exe: 'Cyberpunk2077.exe',                    steamDir: 'Cyberpunk 2077',                  steamAppId: 1091500, emoji: '🤖', publisher: 'CD Projekt Red' },
+  { name: 'Elden Ring',             exe: 'eldenring.exe',                        steamDir: 'ELDEN RING',                      steamAppId: 1245620, emoji: '🗡️', publisher: 'FromSoftware' },
+  { name: 'Rocket League',          exe: 'RocketLeague.exe',                     steamDir: 'rocketleague',                    steamAppId: 252950,  emoji: '🚀', publisher: 'Psyonix' },
+  { name: 'PUBG',                   exe: 'TslGame.exe',                          steamDir: 'PUBG',                            steamAppId: 578080,  emoji: '🎯', publisher: 'Krafton' },
+  { name: 'Team Fortress 2',        exe: 'hl2.exe',                              steamDir: 'Team Fortress 2',                 steamAppId: 440,     emoji: '🎩', publisher: 'Valve' },
+  { name: 'Left 4 Dead 2',          exe: 'left4dead2.exe',                       steamDir: 'Left 4 Dead 2',                   steamAppId: 550,     emoji: '🧟', publisher: 'Valve' },
+  { name: 'Rust',                   exe: 'RustClient.exe',                       steamDir: 'Rust',                            steamAppId: 252490,  emoji: '🪓', publisher: 'Facepunch' },
+  { name: 'ARK',                    exe: 'ShooterGame.exe',                      steamDir: 'ARK',                             steamAppId: 346110,  emoji: '🦕', publisher: 'Studio Wildcard' },
+  { name: 'Forza Horizon 5',        exe: 'ForzaHorizon5.exe',                    steamDir: 'ForzaHorizon5',                   steamAppId: 1551360, emoji: '🏎️', publisher: 'Xbox' },
+  { name: 'Halo Infinite',          exe: 'HaloInfinite.exe',                     steamDir: 'Halo Infinite',                   steamAppId: 1240440, emoji: '🪖', publisher: 'Xbox' },
+  { name: "Baldur's Gate 3",        exe: 'bg3.exe',                              steamDir: 'Baldurs Gate 3',                  steamAppId: 1086940, emoji: '⚔️', publisher: 'Larian' },
+  { name: 'Hogwarts Legacy',        exe: 'HogwartsLegacy.exe',                   steamDir: 'Hogwarts Legacy',                 steamAppId: 990080,  emoji: '🧙', publisher: 'WB Games' },
+  { name: 'The Witcher 3',          exe: 'witcher3.exe',                         steamDir: 'The Witcher 3 Wild Hunt',         steamAppId: 292030,  emoji: '🗡️', publisher: 'CD Projekt Red' },
+  { name: 'Rainbow Six Siege',      exe: 'RainbowSix.exe',                       steamDir: "Tom Clancy's Rainbow Six Siege",  steamAppId: 359550,  emoji: '🛡️', publisher: 'Ubisoft' },
+  { name: 'Warframe',               exe: 'Warframe.x64.exe',                     steamDir: 'Warframe',                        steamAppId: 230410,  emoji: '🤖', publisher: 'Digital Extremes' },
+  { name: 'Destiny 2',              exe: 'destiny2.exe',                         steamDir: 'Destiny 2',                       steamAppId: 1085660, emoji: '🚀', publisher: 'Bungie' },
+  { name: 'Valheim',                exe: 'valheim.exe',                          steamDir: 'Valheim',                         steamAppId: 892970,  emoji: '⚔️', publisher: 'Coffee Stain' },
+  { name: 'Helldivers 2',           exe: 'helldivers2.exe',                      steamDir: 'Helldivers 2',                    steamAppId: 553850,  emoji: '🪖', publisher: 'Arrowhead' },
+  { name: 'Palworld',               exe: 'Palworld.exe',                         steamDir: 'Palworld',                        steamAppId: 1623730, emoji: '🐾', publisher: 'Pocketpair' },
+  { name: 'Dead by Daylight',       exe: 'DeadByDaylight-Win64-Shipping.exe',    steamDir: 'Dead by Daylight',                steamAppId: 381210,  emoji: '🔪', publisher: 'Behaviour' },
+  { name: 'Monster Hunter: World',  exe: 'MonsterHunterWorld.exe',               steamDir: 'Monster Hunter World',            steamAppId: 582010,  emoji: '⚔️', publisher: 'Capcom' },
+  { name: 'Sons Of The Forest',     exe: 'SonsOfTheForest.exe',                  steamDir: 'Sons Of The Forest',              steamAppId: 1326470, emoji: '🌲', publisher: 'Endnight' },
+  { name: 'The Forest',             exe: 'TheForest.exe',                        steamDir: 'The Forest',                      steamAppId: 242760,  emoji: '🌲', publisher: 'Endnight' },
+  { name: 'Fall Guys',              exe: 'FallGuys.exe',                         steamDir: 'Fall Guys',                       steamAppId: 1097150, emoji: '🫘', publisher: 'Mediatonic' },
+  { name: 'Terraria',               exe: 'Terraria.exe',                         steamDir: 'Terraria',                        steamAppId: 105600,  emoji: '⛏️', publisher: 'Re-Logic' },
+  { name: 'Among Us',               exe: 'Among Us.exe',                         steamDir: 'Among Us',                        steamAppId: 945360,  emoji: '🚀', publisher: 'Innersloth' },
+  { name: 'No Man\'s Sky',          exe: 'NMS.exe',                              steamDir: "No Man's Sky",                    steamAppId: 275850,  emoji: '🌌', publisher: 'Hello Games' },
+  { name: 'Sekiro',                 exe: 'sekiro.exe',                           steamDir: 'Sekiro',                          steamAppId: 814380,  emoji: '⚔️', publisher: 'FromSoftware' },
+  { name: 'Dark Souls III',         exe: 'DarkSoulsIII.exe',                     steamDir: 'DARK SOULS III',                  steamAppId: 374320,  emoji: '💀', publisher: 'FromSoftware' },
+  { name: 'Half-Life: Alyx',        exe: 'hlvr.exe',                             steamDir: 'Half-Life Alyx',                  steamAppId: 546560,  emoji: '🔫', publisher: 'Valve' },
+  { name: 'Portal 2',               exe: 'portal2.exe',                          steamDir: 'Portal 2',                        steamAppId: 620,     emoji: '🌀', publisher: 'Valve' },
+  { name: 'Forza Horizon 4',        exe: 'ForzaHorizon4.exe',                    steamDir: 'ForzaHorizon4',                   steamAppId: 1293830, emoji: '🏎️', publisher: 'Xbox' },
+  { name: 'Halfsword',              exe: 'Halfsword-Win64-Shipping.exe',          steamDir: 'Halfsword',                       steamAppId: 1897620, emoji: '⚔️', publisher: 'Halfsword Team' },
   // Non-steam fixed paths
   { name: 'Fortnite',          exe: 'FortniteClient-Win64-Shipping.exe', fixedPaths: ['C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe'], emoji: '🎮', publisher: 'Epic Games' },
   { name: 'Valorant',          exe: 'VALORANT-Win64-Shipping.exe',       fixedPaths: ['C:\\Riot Games\\VALORANT\\live\\ShooterGame\\Binaries\\Win64\\VALORANT-Win64-Shipping.exe'], emoji: '🔫', publisher: 'Riot Games' },
@@ -1092,8 +1109,11 @@ ipcMain.handle('detect-installed-apps', async () => {
     let resolved = null;
     if (entry.steamDir && steamLibs.length) {
       for (const lib of steamLibs) {
-        const candidate = path.join(lib, 'steamapps', 'common', entry.steamDir, entry.exe);
-        if (fs.existsSync(candidate)) { resolved = candidate; break; }
+        const gameDir = path.join(lib, 'steamapps', 'common', entry.steamDir);
+        if (fs.existsSync(gameDir)) {
+          const hit = findExeInDir(gameDir, entry.exe);
+          if (hit) { resolved = hit; break; }
+        }
       }
     }
     if (!resolved && entry.fixedPaths) {
@@ -1342,6 +1362,7 @@ ipcMain.handle('boost-app-advanced', async (event, exePath, options) => {
       disableXboxServices = false,
       disableBackgroundApps = false,
       enableHags = false,
+      ultimatePerf = false,
     } = options || {};
 
     let script = `
@@ -1358,8 +1379,7 @@ ipcMain.handle('boost-app-advanced', async (event, exePath, options) => {
           try { $p.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::High } catch {}
         }
       }
-      $w32prio = ${isRoblox ? 26 : 38}
-      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value $w32prio -Type DWord -Force -ErrorAction SilentlyContinue
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 26 -Type DWord -Force -ErrorAction SilentlyContinue
       $gpuKey = "HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games"
       if (!(Test-Path $gpuKey)) { New-Item -Path $gpuKey -Force | Out-Null }
       Set-ItemProperty -Path $gpuKey -Name "GPU Priority"        -Value 8      -Type DWord  -Force -ErrorAction SilentlyContinue
@@ -1867,6 +1887,28 @@ public class NtIO { [DllImport("ntdll.dll")] public static extern int NtSetInfor
       Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem" -Name "NtfsDisableLastAccessUpdate"  -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
       `;
     }
+
+    if (ultimatePerf) {
+      script += `
+      # Ultimate Performance power plan — create/activate
+      $ultPlanId = "e9a42b02-d5df-448d-aa00-03f14749eb61"
+      $planList = (powercfg /list 2>&1 | Out-String)
+      if ($planList -match $ultPlanId) {
+        powercfg -setactive $ultPlanId 2>&1 | Out-Null
+      } else {
+        $dup = (powercfg -duplicatescheme $ultPlanId 2>&1 | Out-String)
+        $m = [regex]::Match($dup, '([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})')
+        if ($m.Success) { powercfg -setactive $m.Value 2>&1 | Out-Null } else { powercfg -setactive $ultPlanId 2>&1 | Out-Null }
+      }
+      # Bump game process to High priority
+      $procs = Get-Process -Name $procName -ErrorAction SilentlyContinue
+      if ($procs) { foreach ($p in $procs) { try { $p.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::High } catch {} } }
+      # Lower all other user processes
+      Get-Process | Where-Object { $_.Name -notmatch "^(${procName}|svchost|lsass|csrss|winlogon|dwm|wininit|smss|System|Idle)$" } | ForEach-Object {
+        try { if ($_.PriorityClass -eq [System.Diagnostics.ProcessPriorityClass]::Normal) { $_.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::BelowNormal } } catch {}
+      }
+      Set-ItemProperty -Path "HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl" -Name "Win32PrioritySeparation" -Value 26 -Type DWord -Force -ErrorAction SilentlyContinue
+      `;}
 
     script += `
       if ($running) { Write-Output "boosted" } else { Write-Output "not_running" }
