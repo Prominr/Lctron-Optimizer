@@ -1,6 +1,6 @@
 {
   "name": "lctron-optimizer",
-  "version": "1.7.41",
+  "version": "1.7.42",
   "description": "Lctron - Advanced Windows Optimization Suite",
   "author": "Lctron",
   "main": "electron/main.js",
@@ -22,7 +22,9 @@
       "requestedExecutionLevel": "requireAdministrator",
       "icon": "public/icon.ico",
       "publisherName": "Lctron",
-      "signingHashAlgorithms": ["sha256"],
+      "signingHashAlgorithms": [
+        "sha256"
+      ],
       "sign": null
     },
     "nsis": {
@@ -71,6 +73,8 @@
     "concurrently": "^8.2.2",
     "electron": "^30.0.0",
     "electron-builder": "^24.13.3",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5",
     "wait-on": "^7.2.0"
   },
   "browserslist": {
